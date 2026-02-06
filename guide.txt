@@ -1,0 +1,153 @@
+1. La phase théorique (Ne code pas tout de suite)
+Avant d'écrire une seule ligne de code, tu dois comprendre trois concepts clés. Si tu les ignores, tu vas devoir tout réécrire plus tard.
+
+A. Les Sockets et TCP/IP
+Tu vas créer un serveur TCP. Tu dois comprendre le cycle de vie d'une socket.
+
+Concepts : socket(), bind(), listen(), accept(), send(), recv().
+
+Le flux : Le serveur ouvre une porte (port), attend qu'un client frappe (connect), et ouvre une communication dédiée avec lui.
+
+B. Les I/O Multiplexing (poll)
+C'est le cœur du sujet. Ton serveur ne doit jamais bloquer. Si tu fais un cin ou un recv qui attend indéfiniment, tout le serveur se fige pour tous les autres utilisateurs.
+
+L'outil : poll() (C'est généralement celui recommandé/imposé maintenant, plus simple que select et plus portable que epoll pour ce projet).
+
+Le principe : Tu donnes à poll une liste de "file descriptors" (tes clients + ton serveur). Il te réveille seulement quand il y a quelque chose à lire ou à écrire.
+
+C. Le protocole IRC (RFC 1459 / 2812)
+IRC est un protocole textuel. C'est très vieux, mais robuste.
+
+Format : Tout se termine par \r\n.
+
+Exemple : Si j'envoie un message, mon client envoie au serveur : PRIVMSG #channel :Salut tout le monde\r\n.
+
+Conseil : Ne lis pas toute la RFC (c'est indigeste). Lis juste la structure des messages et les commandes obligatoires (NICK, USER, JOIN, PRIVMSG, PART, QUIT, KICK, INVITE, TOPIC, MODE).
+
+2. Architecture du Projet (Comment structurer tes classes)
+En C++98, une bonne structure est vitale. Voici une architecture classique qui fonctionne bien :
+
+1. Classe Server
+C'est le chef d'orchestre.
+
+Attributs :
+
+Le socket principal (celui qui écoute).
+
+Un std::vector<struct pollfd> pour gérer poll.
+
+Une std::map<int, Client*> pour retrouver un client grâce à son "file descriptor".
+
+Une std::map<string, Channel*> pour gérer les canaux.
+
+Méthodes : init(), run() (la boucle infinie), handleNewConnection(), handleMessage().
+
+2. Classe Client
+Représente un utilisateur connecté.
+
+Attributs :
+
+Socket FD (int).
+
+Nickname, Username, Realname.
+
+Booléen isAuthenticated (a-t-il rentré le mot de passe ?).
+
+Buffer (Très important) : Une std::string pour stocker les morceaux de messages reçus jusqu'à avoir un \r\n.
+
+3. Classe Channel
+Représente un salon de discussion (ex: #42).
+
+Attributs :
+
+Nom (#nom).
+
+Liste des clients présents (vecteur de pointeurs Client*).
+
+Liste des opérateurs (admins du channel).
+
+Modes (+i, +t, +k, etc.).
+
+3. Plan d'Action : Étape par Étape
+Ne cherche pas à faire un serveur IRC complet dès le jour 1. Suis cette progression :
+
+Étape 1 : Le "Hello World" du réseau (Le serveur Echo)
+Fais un petit programme (main.cpp) qui :
+
+Crée une socket.
+
+Bind sur un port (ex: 6667).
+
+Listen.
+
+Accepte une connexion.
+
+Lit ce que le client envoie et le renvoie tel quel (Echo).
+
+Test avec : nc 127.0.0.1 6667 (Netcat).
+
+Étape 2 : Le Multiplexing (poll)
+Modifie ton serveur pour qu'il puisse gérer plusieurs clients en même temps avec poll().
+
+Le serveur ne doit pas bloquer si un client n'envoie rien.
+
+Tu dois pouvoir connecter 3 terminaux différents avec nc et voir que si l'un écrit, le serveur le reçoit sans bloquer les autres.
+
+Étape 3 : Parsing et Commandes de base (Authentification)
+C'est là que tu commences le vrai IRC.
+
+Le client IRC (comme Irssi ou Netcat) va t'envoyer 3 commandes au début :
+
+CAP LS (tu peux l'ignorer ou répondre simple).
+
+PASS <password>
+
+NICK <nickname>
+
+USER <username> ...
+
+Tant que ces 3 étapes ne sont pas valides, le client n'est pas "enregistré".
+
+Une fois validé, envoie le message de bienvenue (Code numérique 001). Tant que ton client ne reçoit pas le code 001, il restera bloqué sur "Connecting...".
+
+Étape 4 : Les Canaux et la communication
+Implémente :
+
+JOIN #channel : Créer le Channel s'il n'existe pas, ajouter le Client dedans.
+
+PRIVMSG :
+
+Si destinataire = #channel -> Envoyer à tous les membres du channel (sauf l'envoyeur !).
+
+Si destinataire = Nickname -> Envoyer à ce client spécifique.
+
+Étape 5 : Les Opérateurs et Modes (Le Boss final)
+Gérer KICK, INVITE, TOPIC et surtout MODE (donner les droits op, mettre un mot de passe sur le channel, etc.). C'est souvent la partie la plus longue à cause de tous les cas particuliers.
+
+4. Les pièges classiques (Warning ⚠️)
+Le Buffer (TCP Stream) : TCP coupe les messages comme il veut.
+
+Tu peux recevoir PRIVMS dans un paquet, et G #test :salut\r\n dans le suivant.
+
+Tu dois stocker ce que tu reçois dans un buffer par client, et ne traiter (parser) que quand tu trouves un \r\n.
+
+Inversement : Tu peux recevoir deux commandes d'un coup : NICK toto\r\nUSER toto...\r\n. Il faut traiter les deux.
+
+C++98 strict :
+
+Pas de auto, pas de lambda, pas de std::to_string (utilise stringstream), pas de smart pointers. Compile avec -std=c++98 dès le début pour ne pas avoir de surprises.
+
+Fuites de mémoire :
+
+Si un client se déconnecte brutalement (CTRL+C), tu dois : le retirer de poll, le retirer des channels, fermer son FD (close), et delete l'objet Client. Sinon, ton serveur va exploser sur la durée.
+
+send() non bloquant :
+
+Techniquement, send() peut aussi bloquer si le buffer de sortie est plein. Pour avoir 125/100, il faut gérer ça, mais pour valider le projet, assure-toi au moins que recv est géré parfaitement.
+
+5. Outils indispensables
+Netcat (nc -C 127.0.0.1 6667) : -C envoie \r\n. C'est ton meilleur ami pour debugger le protocole brut.
+
+Wireshark (optionnel) : Pour voir ce qui passe vraiment sur le réseau si tu es perdu.
+
+Irssi / WeeChat : À utiliser une fois que ton authentification (PASS/NICK/USER) fonctionne via Netcat.

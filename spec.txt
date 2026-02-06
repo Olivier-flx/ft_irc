@@ -1,0 +1,37 @@
+
+Messages :
+Each IRC message may consist of up to three main parts: the prefix
+   (optional), the command, and the command parameters (of which there
+   may be up to 15).  The prefix, command, and all parameters are
+   separated by one (or more) ASCII space character(s)
+
+   The presence of a prefix is indicated with a single leading ASCII
+   colon character (':', 0x3b), which must be the first character of the
+   message itself.  There must be no gap (whitespace) between the colon
+   and the prefix.
+
+   IRC messages are always lines of characters terminated with a CR-LF
+   (Carriage Return - Line Feed) pair, and these messages shall not
+   exceed 512 characters in length, counting all characters including
+   the trailing CR-LF. Thus, there are 510 characters maximum allowed
+   for the command and its parameters.
+
+   [:prefix] COMMAND params :trailing
+
+
+2️⃣ Registration handshake
+
+RFC 2812 :
+👉 PASS
+👉 NICK
+👉 USER
+
+3️⃣ Commandes channels essentielles
+- JOIN
+- PART
+- PRIVMSG
+- QUIT
+- MODE (au moins aperçu)
+- TOPIC
+- KICK
+- INVITE.
