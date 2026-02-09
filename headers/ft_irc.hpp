@@ -5,6 +5,13 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <string.h>
+#include <iostream>
+#include <vector>
+
+
+#include <cctype>
+#include <iomanip>
+bool	arg_ok(int ac, char **argv);
 
 #endif
 

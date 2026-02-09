@@ -1,0 +1,79 @@
+
+#include "ft_irc.hpp"
+
+int	check_ac(int ac)
+{
+	if (ac <= 1 || ac > 3) {
+		std::cout << "Err: invalid number of parameters" << std::endl;
+		return EXIT_FAILURE;
+	}
+}
+
+int	check_port_is_digit (char *port)
+{
+	int i = 0;
+	while (port[i]) {
+		if (isspace(port[i]))
+			continue;
+		if (port[i] < '0' || port[i] > '9'){
+			std::cout << "Err: invalid <port> : contains non digit char" << std::endl;
+			return EXIT_FAILURE;
+		}
+		i++;
+	}
+	return EXIT_SUCCESS;
+}
+
+// port is in range (0 - 65 535)
+int	check_port_is_inrange(char *port)
+{
+	// port is isdigit
+	errno = 0;
+	char* p_end{};
+	const long port = std::strtol(port, &p_end, 10);
+	if (port == p_end)
+		return ;
+	const bool range_error = errno == ERANGE;
+	if (range_error)
+		std::cout << "Err:Range error occurred.\n";
+	const std::string extracted(port, p_end - port);
+	port = p_end;
+
+	std::cout << "Extracted " << std::quoted(extracted)
+				<< ", strtol returned " << port << '.';
+}
+
+int invalid_char_in_password(char *pw)
+{
+	int i = 0;
+	while (pw[i])
+	{
+		if (isspace(pw[i])) {
+			std::cout << "Err: invalid password : space not allowed" << std::endl;
+			return EXIT_FAILURE;
+		}
+		if (pw[i] == '\'' || pw[i] == ';' || pw[i] == '\\' || pw[i] == '`' || pw[i] == '"') {
+			std::cout << "Err: invalid password : unauthorised character in password ('\'', ';', '\\', '`' or '\"')" << std::endl;
+			return EXIT_FAILURE;
+		}
+		if (pw[i] < 21 || pw[i] > 126){
+			std::cout << "Err: invalid password : unvalid character in password" << std::endl;
+			return EXIT_FAILURE;
+		}
+		i++;
+	}
+	return EXIT_SUCCESS;
+}
+
+bool	arg_ok(int ac, char **argv){
+	int err = 0;
+
+	err += check_ac(ac);
+	err += check_port_is_digit(argv[0]);
+	if (err > 0) return false;
+	err += check_port_is_inrange(argv[0]);
+	if (err > 0) return false;
+	err += invalid_char_in_password(argv[0]);
+	if (err != 0)
+		return false;
+}
