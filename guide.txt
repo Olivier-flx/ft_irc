@@ -1,10 +1,6 @@
 ================================================================================
-                        🚀 GUIDE DE SURVIE : FT_IRC (42) 🚀
+                        🚀 GUIDE DE SURVIE : FT_IRC (C++98) 🚀
 ================================================================================
-
-AUTEUR  : Ton Assistant AI
-PROJET  : ft_IRC (C++98)
-OBJECTIF: Créer un serveur IRC RFC-compliant sans perdre la tête.
 
 --------------------------------------------------------------------------------
                            PRÉAMBULE : ÉTAT D'ESPRIT
