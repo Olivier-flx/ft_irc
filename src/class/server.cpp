@@ -33,7 +33,8 @@ Server::~Server() {
 	std::cout << "Server : Destructor called" << std::endl;
 };
 
-///////////// Methodes //////////
+//////////////////////////////////
+///////////// METHODES //////////
 
 void	Server::init()
 {
