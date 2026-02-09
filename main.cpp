@@ -1,6 +1,8 @@
 
-int	main()
+int	main(int ac, char **argv)
 {
+	if (!arg_ok(ac, argv))
+		return (1);
 	//create socket
 	//Bind the socket to a IP / port
 	// Mark the socket for listening in
