@@ -9,6 +9,10 @@
 #include <string.h>
 #include <iostream>
 #include <vector>
+#include <map>
+
+ #include <poll.h>
+
 
 
 #include <cctype>
