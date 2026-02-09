@@ -17,6 +17,7 @@ int	check_port_is_digit (char *port)
 		if (isspace(port[i]))
 			continue;
 		if (port[i] < '0' || port[i] > '9'){
+			std::cout << port[i] << '\n';
 			std::cout << "Err: invalid <port> : contains non digit char" << std::endl;
 			return EXIT_FAILURE;
 		}
@@ -26,24 +27,24 @@ int	check_port_is_digit (char *port)
 }
 
 // port is in range (0 - 65 535)
+// https://en.cppreference.com/w/cpp/string/byte/strtol.html
 int	check_port_is_inrange(char *port)
 {
 	// port is isdigit
 	errno = 0;
 	char* p_end = NULL;
 	const long port_number = std::strtol(port, &p_end, 10);
-	if (port == p_end)
+	if (port == p_end) //aucun chiffre n'a été trouvé
 		return EXIT_FAILURE;
 	const bool range_error = errno == ERANGE;
-	if (range_error)
-		std::cout << "Err:Range error occurred.\n";
-	const std::string extracted(port, p_end - port);
-	port = p_end;
-
-	std::cout << "Extracted '" << extracted
-				<< "', strtol returned " << port << '.';
-	if (port_number < 0 || port_number > 65535)
+	if (range_error) {
+		std::cout << "Err: port Range error occurred.\n";
 		return EXIT_FAILURE;
+	}
+	if (port_number < 0 || port_number > 65535) {
+		std::cout << "Err: port must be between [0, 65 535].\n";
+		return EXIT_FAILURE;
+	}
 	return EXIT_SUCCESS;
 }
 
@@ -73,11 +74,11 @@ bool	arg_ok(int ac, char **argv){
 	int err = 0;
 
 	err += check_ac(ac);
-	err += check_port_is_digit(argv[0]);
+	err += check_port_is_digit(argv[1]);
 	if (err > 0) return false;
-	err += check_port_is_inrange(argv[0]);
+	err += check_port_is_inrange(argv[1]);
 	if (err > 0) return false;
-	err += invalid_char_in_password(argv[0]);
+	err += invalid_char_in_password(argv[2]);
 	if (err != 0)
 		return false;
 	return (true);
