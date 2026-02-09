@@ -1,0 +1,159 @@
+================================================================================
+                        🚀 GUIDE DE SURVIE : FT_IRC (42) 🚀
+================================================================================
+
+AUTEUR  : Ton Assistant AI
+PROJET  : ft_IRC (C++98)
+OBJECTIF: Créer un serveur IRC RFC-compliant sans perdre la tête.
+
+--------------------------------------------------------------------------------
+                           PRÉAMBULE : ÉTAT D'ESPRIT
+--------------------------------------------------------------------------------
+Ne code pas tout de suite ! Ce projet est 20% de code réseau et 80% de parsing
+de texte (string manipulation). Si tu codes sans plan, tu devras tout réécrire.
+
+Les 3 Piliers du savoir avant de commencer :
+1. SOCKETS TCP : Comprendre bind(), listen(), accept().
+2. MULTIPLEXING: Comprendre poll() (c'est le cœur de ton serveur).
+3. PROTOCOLE   : Comprendre que IRC, c'est juste du texte qui finit par \r\n.
+
+================================================================================
+                        PHASE 1 : ARCHITECTURE (C++98)
+================================================================================
+
+Voici les classes que tu devrais créer pour avoir une structure propre.
+
+📂 1. Class Server
+------------------
+C'est le chef d'orchestre. Il contient la boucle principale.
+[ATTRIBUTS]
+  - int _serverSocket;             // La socket d'écoute
+  - vector<pollfd> _fds;           // Pour poll()
+  - map<int, Client*> _clients;    // FD -> Pointeur vers Client
+  - map<string, Channel*> _chans;  // Nom du channel -> Pointeur Channel
+  - string _password;              // Le mdp du serveur
+
+[MÉTHODES]
+  - init();                        // socket, setsockopt, bind, listen
+  - run();                         // Boucle while(true) avec poll()
+  - acceptClient();                // accept() -> new Client
+  - receiveData(fd);               // recv() -> parsing
+
+📂 2. Class Client
+------------------
+Représente un utilisateur connecté (humain ou bot).
+[ATTRIBUTS]
+  - int _fd;                       // File descriptor
+  - string _nickname;
+  - string _username;
+  - string _buffer;                // ⚠️ CRUCIAL : Stocke les morceaux de msg
+  - bool _isRegistered;            // A-t-il passé PASS + NICK + USER ?
+
+📂 3. Class Channel
+-------------------
+Un salon de discussion (#42, #general).
+[ATTRIBUTS]
+  - string _name;
+  - vector<Client*> _members;      // Qui est dedans ?
+  - vector<Client*> _admins;       // Qui sont les opérateurs ?
+  - string _topic;
+  - char _modes;                   // i, t, k, o, l...
+
+================================================================================
+                        PHASE 2 : PLAN D'ACTION (STEP BY STEP)
+================================================================================
+
+Ne cherche pas à tout faire d'un coup. Suis cet ordre :
+
+📍 ÉTAPE 1 : Le "Hello World" Réseau (Sans Classes)
+Objectif : Comprendre poll().
+---------------------------------------------------
+1. Crée un main.cpp simple.
+2. Setup socket -> bind -> listen.
+3. Utilise poll() pour attendre une connexion.
+4. Accepte la connexion.
+5. Fais une boucle qui lit (recv) ce que le client envoie et l'affiche.
+🛠️ Test : Utilise `nc -C 127.0.0.1 6667` (Netcat).
+
+📍 ÉTAPE 2 : La Gestion Multi-Clients
+Objectif : Le serveur ne bloque jamais.
+---------------------------------------------------
+1. Intègre la classe `Server` et `Client`.
+2. Gère le vecteur `pollfd`.
+3. Connecte 2 ou 3 Netcats en même temps.
+4. Si Client A écrit, le serveur reçoit. Si Client B écrit, le serveur reçoit.
+⚠️ Si tu fais un recv() bloquant, tu as raté cette étape.
+
+📍 ÉTAPE 3 : Le Handshake (Connexion IRC)
+Objectif : Faire plaisir à Irssi / Netcat.
+---------------------------------------------------
+Pour se connecter, un client IRC envoie (dans le désordre parfois) :
+  > CAP LS
+  > PASS <ton_mdp>
+  > NICK <le_pseudo>
+  > USER <username> ...
+
+Ton travail :
+1. Parser ces commandes.
+2. Vérifier le mot de passe.
+3. Stocker le Nick et le User.
+4. Si tout est OK, répondre : "001 <nick> :Welcome to the IRC Network".
+✅ SUCCÈS : Le client passe de "Connecting..." à "Connected".
+
+📍 ÉTAPE 4 : Communication & Channels
+Objectif : Discuter.
+---------------------------------------------------
+Implémente les commandes suivantes :
+1. JOIN #channel : Créer le channel ou ajouter le client dedans.
+2. PRIVMSG #channel :Message : Envoyer à tous les membres SAUF l'envoyeur.
+3. PRIVMSG Nick :Message : Envoyer à un client précis (Whisper).
+
+📍 ÉTAPE 5 : Les Commandes Admin & Modes
+Objectif : Gérer le chaos.
+---------------------------------------------------
+Implémente : KICK, INVITE, TOPIC, PART, QUIT.
+Et enfin le Boss final : MODE
+  - MODE #channel +o user (Donner les droits op)
+  - MODE #channel +k pass (Mettre un mdp au channel)
+  - etc.
+
+================================================================================
+                        ⚠️ LES PIÈGES MORTELS (ATTENTION)
+================================================================================
+
+💣 1. Le Buffer TCP (Stream vs Paquets)
+TCP ne garantit pas que tu reçoives tout le message d'un coup.
+Tu peux recevoir : "PRIVM" ... puis plus tard ... "SG #chan :salut\r\n"
+-> SOLUTION : Ajoute tout ce que tu reçois dans `Client._buffer`.
+-> Ne traite la commande que quand tu trouves `\r\n` (ou `\n`).
+
+💣 2. La commande CTRL+D (Netcat) ou CTRL+C
+Si un client part sauvagement, `recv` retourne 0 ou -1.
+-> SOLUTION : Tu dois nettoyer proprement :
+   1. close(fd)
+   2. Retirer de la liste pollfd
+   3. Retirer des channels
+   4. delete Client*
+   Sinon -> Segfault ou Fuite de mémoire.
+
+💣 3. File Descriptors
+N'oublie pas que `poll` a une limite (souvent 1024). Ton code doit gérer
+proprement les ouvertures/fermetures.
+
+💣 4. C++98 Strict
+Pas de `auto`, pas de `std::to_string`, pas de lambda.
+Utilise `std::stringstream` pour convertir int <-> string.
+
+================================================================================
+                        🛠️ BOITE À OUTILS
+================================================================================
+
+1. Netcat : `nc -C 127.0.0.1 6667`
+   L'option -C est vitale, elle envoie \r\n à la fin de tes lignes.
+
+2. Irssi : `irssi -c 127.0.0.1 -p 6667 -w tonpassword`
+   Le vrai test client.
+
+3. Wireshark :
+   Si tu ne comprends pas pourquoi ton client bug, regarde les paquets
+   qui transitent sur la boucle locale (Loopback).
