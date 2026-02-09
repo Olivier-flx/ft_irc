@@ -7,6 +7,7 @@ int	check_ac(int ac)
 		std::cout << "Err: invalid number of parameters" << std::endl;
 		return EXIT_FAILURE;
 	}
+	return EXIT_SUCCESS;
 }
 
 int	check_port_is_digit (char *port)
@@ -29,18 +30,21 @@ int	check_port_is_inrange(char *port)
 {
 	// port is isdigit
 	errno = 0;
-	char* p_end{};
-	const long port = std::strtol(port, &p_end, 10);
+	char* p_end = NULL;
+	const long port_number = std::strtol(port, &p_end, 10);
 	if (port == p_end)
-		return ;
+		return EXIT_FAILURE;
 	const bool range_error = errno == ERANGE;
 	if (range_error)
 		std::cout << "Err:Range error occurred.\n";
 	const std::string extracted(port, p_end - port);
 	port = p_end;
 
-	std::cout << "Extracted " << std::quoted(extracted)
-				<< ", strtol returned " << port << '.';
+	std::cout << "Extracted '" << extracted
+				<< "', strtol returned " << port << '.';
+	if (port_number < 0 || port_number > 65535)
+		return EXIT_FAILURE;
+	return EXIT_SUCCESS;
 }
 
 int invalid_char_in_password(char *pw)
@@ -76,4 +80,5 @@ bool	arg_ok(int ac, char **argv){
 	err += invalid_char_in_password(argv[0]);
 	if (err != 0)
 		return false;
+	return (true);
 }

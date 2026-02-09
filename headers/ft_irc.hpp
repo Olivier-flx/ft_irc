@@ -2,6 +2,8 @@
 #ifndef FT_IRC_H
 # define FT_IRC_H
 
+#include <cstdlib>
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <string.h>
@@ -11,6 +13,7 @@
 
 #include <cctype>
 #include <iomanip>
+#include <cerrno>
 bool	arg_ok(int ac, char **argv);
 
 #endif
