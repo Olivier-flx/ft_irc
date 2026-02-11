@@ -1,14 +1,33 @@
 
 #include "ft_irc.hpp"
+#include "class.hpp"
+
+/**
+ * Pour tester : Ouvrir deux terminaux
+ * Dans le premier lancer le programme.
+ *
+ * Dans le second, `nc 127.0.0.1 8080`  ou `nc -6 ::1 8080`
+ * puis taper le message "Hello" puis la touche enter
+ *
+ * puis la connextion se ferme
+ * Prochaines etapes
+ * 		--> Implementer create_serverSocket dans une boucle
+ * 		--> utiliser les class client et serveur
+ *
+ */
+
 
 int	main(int ac, char **argv)
 {
-	std::vector<std::string> arguments;
-
-	if (ac > 1)
-		arguments.assign(argv + 1, argv + ac);
-	if (!arg_ok(ac, argv))
+	// std::vector<std::string> arguments;
+	// if (ac > 1)
+	// 	arguments.assign(argv + 1, argv + ac);
+	int	port = 0;
+	if (!arg_ok(ac, argv, port))
 		return (EXIT_FAILURE);
+	std::printf("port: %i\n", port);
+
+	create_serverSocket(port);
 	//create socket
 	//Bind the socket to a IP / port
 	// Mark the socket for listening in

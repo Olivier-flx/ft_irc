@@ -9,14 +9,15 @@ class Server
 {
 	private:
 		Server(void); // unauthorised default constructor
-		int _serverSocket;					// La socket d'écoute
+		int	_serverSocket;					// La socket d'écoute
 		std::vector<pollfd> _fds;			// Pour poll()
 		std::map<int, Client*> _clients;	// FD -> Pointeur vers Client
 //		std::map<string, Channel*> _channels;	// Nom du channel -> Pointeur Channel
 		std::string _password;				// Le mdp du serveur
+		int	_port;
 
 	public:
-		Server(int serverSocket, std::string password);
+		Server(int serverSocket, std::string password, int port);
 		Server(const Server &cpy);
 		Server &operator=(const Server &src);
 		~Server();

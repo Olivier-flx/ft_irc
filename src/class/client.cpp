@@ -7,7 +7,7 @@ Client::Client( void ){
 
 Client::Client(std::string nickname, std::string username, std::string password)
 				:	_nickname(nickname),
-					_username (),
+					_username (username),
 					_password (password) {
 	std::cout << "Client : Constructor called" << std::endl;
 };

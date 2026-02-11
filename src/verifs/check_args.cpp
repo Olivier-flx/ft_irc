@@ -1,7 +1,7 @@
 
 #include "ft_irc.hpp"
 
-int	check_ac(int ac)
+static int	check_ac(int ac)
 {
 	if (ac <= 1 || ac > 3) {
 		std::cout << "Err: invalid number of parameters" << std::endl;
@@ -10,15 +10,14 @@ int	check_ac(int ac)
 	return EXIT_SUCCESS;
 }
 
-int	check_port_is_digit (char *port)
+static int	check_port_is_digit (char *port)
 {
 	int i = 0;
 	while (port[i]) {
 		if (isspace(port[i]))
 			continue;
 		if (port[i] < '0' || port[i] > '9'){
-			std::cout << port[i] << '\n';
-			std::cout << "Err: invalid <port> : contains non digit char" << std::endl;
+			std::cout << "Err: invalid <port> : contains non digit char(" << port[i] <<")" << std::endl;
 			return EXIT_FAILURE;
 		}
 		i++;
@@ -28,7 +27,7 @@ int	check_port_is_digit (char *port)
 
 // port is in range (0 - 65 535)
 // https://en.cppreference.com/w/cpp/string/byte/strtol.html
-int	check_port_is_inrange(char *port)
+static int	check_port_is_inrange(char *port, int  &port_int)
 {
 	// port is isdigit
 	errno = 0;
@@ -45,10 +44,11 @@ int	check_port_is_inrange(char *port)
 		std::cout << "Err: port must be between [0, 65 535].\n";
 		return EXIT_FAILURE;
 	}
+	port_int = port_number;
 	return EXIT_SUCCESS;
 }
 
-int invalid_char_in_password(char *pw)
+static int invalid_char_in_password(char *pw)
 {
 	int i = 0;
 	while (pw[i])
@@ -70,13 +70,14 @@ int invalid_char_in_password(char *pw)
 	return EXIT_SUCCESS;
 }
 
-bool	arg_ok(int ac, char **argv){
+bool	arg_ok(int ac, char **argv, int &port_int){
 	int err = 0;
 
 	err += check_ac(ac);
+	if (err > 0) return false;
 	err += check_port_is_digit(argv[1]);
 	if (err > 0) return false;
-	err += check_port_is_inrange(argv[1]);
+	err += check_port_is_inrange(argv[1], port_int);
 	if (err > 0) return false;
 	err += invalid_char_in_password(argv[2]);
 	if (err != 0)

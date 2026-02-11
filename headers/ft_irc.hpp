@@ -6,21 +6,46 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <string.h>
 #include <iostream>
 #include <vector>
 #include <map>
 
  #include <poll.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <fcntl.h>
 
+
+#include <cstdio> //perror printf
+#include <unistd.h>
 
 
 #include <cctype>
 #include <iomanip>
 #include <cerrno>
-bool	arg_ok(int ac, char **argv);
+bool	arg_ok(int ac, char **argv, int &port);
+
+
+#include <arpa/inet.h>
+int	create_serverSocket (int port);
+
 
 #endif
+
+
+// External Function Everything in C++ 98.
+	// socket, close, setsockopt, getsockname,
+	// getprotobyname, gethostbyname, getaddrinfo,
+	// freeaddrinfo, bind, connect, listen, accept,
+	// htons, htonl, ntohs, ntohl, inet_addr, inet_ntoa,
+	// inet_ntop, send, recv, signal, sigaction,
+	// sigemptyset, sigfillset, sigaddset, sigdelset,
+	// sigismember, lseek, fstat, fcntl, poll (or
+	// equivalent)
+
+//===================
 
 // socket(int domain, int type, int protocol);
 // Crée une socket réseau.

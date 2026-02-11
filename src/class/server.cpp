@@ -5,9 +5,10 @@ Server::Server( void ){
 	std::cout << "Server : Default Constructor called" << std::endl;
 };
 
-Server::Server(int serverSocket, std::string password)
+Server::Server(int serverSocket, std::string password, int port)
 				:	_serverSocket(serverSocket),
-					_password (password)
+					_password (password),
+					_port(port)
 {
 	std::cout << "Server : Constructor called" << std::endl;
 };
@@ -21,6 +22,7 @@ Server &Server::operator=(const Server &src) {
 	std::cout << "Server : Overload=  called" << std::endl;
 	if (this != &src) {
 		_serverSocket = src._serverSocket;
+		_port = src._port;
 		_fds = src._fds;
 		_clients = src._clients;
 		//_channels = src._channels;
@@ -50,6 +52,6 @@ void	Server::acceptClient()
 };		// accept() -> new Client
 void	Server::receiveData(int fd)
 {
-	std::cout << "receiveData() \n";
+	std::cout << "receiveData() \n" <<fd;
 };	// recv() -> parsing
 
