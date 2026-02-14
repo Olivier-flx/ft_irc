@@ -6,7 +6,7 @@
 /*   By: ofilloux <ofilloux@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/11 18:02:49 by ofilloux          #+#    #+#             */
-/*   Updated: 2026/02/11 19:08:13 by ofilloux         ###   ########.fr       */
+/*   Updated: 2026/02/14 10:59:39 by ofilloux         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,6 @@ sources : https://www.tutorialspoint.com/cplusplus/cpp_socket_programming.htm
 
 int create_serverSocket (int port)
 {
-
-
 // 1. Création du socket en IPv6 (qui fera aussi IPv4)
 	int server_fd = socket(AF_INET6, SOCK_STREAM, 0);
 	if (server_fd == -1) {
@@ -50,7 +48,7 @@ int create_serverSocket (int port)
 	setsockopt(server_fd, IPPROTO_IPV6, IPV6_V6ONLY, &no, sizeof(no)); // Désactive "IPv6 only"
 	// B. Réutiliser le port rapidement après un crash
 	int opt = 1;
-	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
+	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) { //pouvoir relancer le serveur immédiatement après l'avoir arrêté
 		std::perror("setsockopt SO_REUSEADDR failed");
 		return -1;
 	}
