@@ -28,6 +28,7 @@
 #include <cerrno>
 bool	arg_ok(int ac, char **argv, int &port);
 
+#include <poll.h>
 
 #include <arpa/inet.h>
 

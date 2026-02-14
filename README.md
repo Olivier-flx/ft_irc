@@ -1,4 +1,28 @@
 
+This project has been created as part
+of the 42 curriculum by ofilloux[, lyl[
+
+
+///////Description//////
+
+
+//////Instructions//////
+
+//////Resources//////
+
+
+
+
+
+
+
+
+
+
+
+
+_________________________TO TRANSLATE____________________________
+
 /////// 1. CHOIX DU CLIENT IRC /////////
 
 Client	| Type		| OS		| Pourquoi pour ft_irc ?

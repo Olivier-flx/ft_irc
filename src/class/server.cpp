@@ -123,11 +123,21 @@ void	Server::init()
 	std::cout << "Serveur en attente sur le port " << _port << "..." << std::endl;
 };				// socket, setsockopt, bind, listen
 
+//https://beej.us/guide/bgnet/html/split-wide/slightly-advanced-techniques.html
 void	Server::run()
 {
+	struct pollfd server_pfd;
+	server_pfd.fd = _serverSocket;
+	server_pfd.events = POLLIN | POLLOUT;
+	server_pfd.revents = 0;
+	_fds.push_back(server_pfd);
+	while (true)
+	{
+		if(-1 == poll(_fds.data(), (nfds_t) _fds.size(), -1)) //https://beej.us/guide/bgnet/html/split-wide/slightly-advanced-techniques.html#:~:text=You%20can%20specify%20a%20negative%20timeout
+				_exitWithError("Poll failed ");
 
-	std::cout << "run() \n";
-};				// Boucle while(true) avec poll()
+	}
+};
 
 void	Server::acceptClient()
 {
@@ -173,7 +183,7 @@ void	Server::acceptClient()
 	/////////////////////////////
 	// 7 Assigner le noouveau client a la maap de clients
 	_clients[client_fd] = new Client (client_fd, std::string(client_ip));
-
+	_fds.push_back({client_fd, POLLIN | POLLOUT, 0});
 
 	// 8. Lecture du message
 	char buffer[1024] = {0};
