@@ -5,6 +5,12 @@ Client::Client( void ){
 	std::cout << "Client : Default Constructor called" << std::endl;
 };
 
+Client::Client(int fd, std::string ip)
+				:	_fd(fd),
+					_ip (ip) {
+	std::cout << "Client : Constructor called" << std::endl;
+};
+
 Client::Client(std::string nickname, std::string username, std::string password)
 				:	_nickname(nickname),
 					_username (username),
@@ -30,5 +36,9 @@ Client &Client::operator=(const Client &src) {
 };
 
 Client::~Client() {
+	if (_fd != -1) {
+		close(_fd);
+		_fd = -1;
+	}
 	std::cout << "Client : Destructor called" << std::endl;
 };

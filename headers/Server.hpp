@@ -10,11 +10,13 @@ class Server
 	private:
 		Server(void);
 		int	_serverSocket;					// La socket d'écoute
+		std::string _password;				// Le mdp du serveur
+		int	_port;
 		std::vector<pollfd> _fds;			// Pour poll()
 		std::map<int, Client*> _clients;	// FD -> Pointeur vers Client
 //		std::map<string, Channel*> _channels;	// Nom du channel -> Pointeur Channel
-		std::string _password;				// Le mdp du serveur
-		int	_port;
+
+		void _exitWithError(const std::string& msg);
 
 	public:
 

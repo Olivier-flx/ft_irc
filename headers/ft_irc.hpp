@@ -30,7 +30,6 @@ bool	arg_ok(int ac, char **argv, int &port);
 
 
 #include <arpa/inet.h>
-int	create_serverSocket (int port);
 
 
 #endif
