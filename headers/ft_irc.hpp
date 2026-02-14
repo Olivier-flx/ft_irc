@@ -19,6 +19,7 @@
 
 
 #include <cstdio> //perror printf
+#include <cstring> //strerror
 #include <unistd.h>
 
 

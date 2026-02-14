@@ -19,15 +19,24 @@
 
 int	main(int ac, char **argv)
 {
-	// std::vector<std::string> arguments;
-	// if (ac > 1)
-	// 	arguments.assign(argv + 1, argv + ac);
 	int	port = 0;
 	if (!arg_ok(ac, argv, port))
 		return (EXIT_FAILURE);
 	std::printf("port: %i\n", port);
+	std::string password = argv[2];
 
-	create_serverSocket(port);
+	try
+	{
+		Server serv(password, port);
+		serv.init();
+		serv.run();
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << "Err:" << e.what() << '\n';
+		return (EXIT_FAILURE);
+	}
+
 	//create socket
 	//Bind the socket to a IP / port
 	// Mark the socket for listening in

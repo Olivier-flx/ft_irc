@@ -8,7 +8,7 @@
 class Server
 {
 	private:
-		Server(void); // unauthorised default constructor
+		Server(void);
 		int	_serverSocket;					// La socket d'écoute
 		std::vector<pollfd> _fds;			// Pour poll()
 		std::map<int, Client*> _clients;	// FD -> Pointeur vers Client
@@ -17,7 +17,8 @@ class Server
 		int	_port;
 
 	public:
-		Server(int serverSocket, std::string password, int port);
+
+		Server(std::string password, int port);
 		Server(const Server &cpy);
 		Server &operator=(const Server &src);
 		~Server();
