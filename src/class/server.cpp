@@ -183,7 +183,14 @@ void	Server::acceptClient()
 	/////////////////////////////
 	// 7 Assigner le noouveau client a la maap de clients
 	_clients[client_fd] = new Client (client_fd, std::string(client_ip));
-	_fds.push_back({client_fd, POLLIN | POLLOUT, 0});
+
+	//// JE ne sais pas si ici c'est l'endroit le plus adequat, de plus dans le stack plutot que dans la heap
+	struct pollfd pfd;
+	pfd.fd = client_fd;
+	pfd.events = POLLIN | POLLOUT;
+	pfd.revents = 0;
+
+	_fds.push_back(pfd);
 
 	// 8. Lecture du message
 	char buffer[1024] = {0};
@@ -198,6 +205,6 @@ void	Server::acceptClient()
 
 void	Server::receiveData(int fd)
 {
-
+	std::cout << "Receiving data from fd :" << fd << std::endl;
 };	// recv() -> parsing
 
