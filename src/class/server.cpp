@@ -86,6 +86,8 @@ void	Server::init()
 	if (server_fd == -1)
 		_exitWithError("socket failed");
 
+	_serverSocket = server_fd;
+
 	// 2. Configuration des options
 		// A. Dual Stack : Accepter IPv4 et IPv6 sur ce socket
 	int no = 0;
@@ -107,6 +109,7 @@ void	Server::init()
 		// On utilise sockaddr_in6 car le socket est AF_INET6
 	struct sockaddr_in6 address;
 	int addrlen = sizeof(address);
+	std::memset(&address, 0, addrlen);
 
 	address.sin6_family = AF_INET6;
 	address.sin6_addr = in6addr_any;// Équivalent IPv6 de INADDR_ANY pour ipv4
@@ -117,7 +120,8 @@ void	Server::init()
 		_exitWithError("Bind failed");
 
 	// 5. Listen
-	if (listen(server_fd, 3) < 0)
+		//SOMAXCONN = Socket Maximum Connections
+	if (listen(server_fd, SOMAXCONN) < 0)
 		_exitWithError("Listen failed ");
 
 	std::cout << "Serveur en attente sur le port " << _port << "..." << std::endl;
@@ -128,13 +132,25 @@ void	Server::run()
 {
 	struct pollfd server_pfd;
 	server_pfd.fd = _serverSocket;
-	server_pfd.events = POLLIN | POLLOUT;
+	server_pfd.events = POLLIN;
 	server_pfd.revents = 0;
 	_fds.push_back(server_pfd);
 	while (true)
 	{
 		if(-1 == poll(_fds.data(), (nfds_t) _fds.size(), -1)) //https://beej.us/guide/bgnet/html/split-wide/slightly-advanced-techniques.html#:~:text=You%20can%20specify%20a%20negative%20timeout
 				_exitWithError("Poll failed ");
+		// 3. On parcourt le tableau pour voir qui a généré un événement
+		for (size_t i = 0; i < _fds.size(); i++) {
+			if (_fds[i].revents == 0)
+				continue;
+			if (_fds[i].revents & POLLIN)
+			{
+				if (_fds[i].fd == _serverSocket) //Event server = nouveau client
+					this->acceptClient();
+				else
+					this->receiveData(_fds[i].fd);
+			}
+		}
 
 	}
 };
@@ -184,27 +200,23 @@ void	Server::acceptClient()
 	// 7 Assigner le noouveau client a la maap de clients
 	_clients[client_fd] = new Client (client_fd, std::string(client_ip));
 
-	//// JE ne sais pas si ici c'est l'endroit le plus adequat, de plus dans le stack plutot que dans la heap
+	// 8 rajouter  le fd du clients au polls de fds a surveiller
 	struct pollfd pfd;
 	pfd.fd = client_fd;
-	pfd.events = POLLIN | POLLOUT;
+	pfd.events = POLLIN;
 	pfd.revents = 0;
-
 	_fds.push_back(pfd);
 
-	// 8. Lecture du message
+};
+
+
+void	Server::receiveData(int client_fd)
+{
+	std::cout << "Receiving data from fd :" << client_fd << std::endl;
 	char buffer[1024] = {0};
-	ssize_t bytes_read = read(client_fd, buffer, 1024 - 1);
-	std::cout << "Message from client: " << buffer << std::endl;
+	ssize_t bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 	if (bytes_read > 0) {
 		std::cout << "Message reçu : " << buffer << std::endl;
 	}
-
-};		// accept() -> new Client
-
-
-void	Server::receiveData(int fd)
-{
-	std::cout << "Receiving data from fd :" << fd << std::endl;
 };	// recv() -> parsing
 

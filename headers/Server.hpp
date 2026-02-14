@@ -29,7 +29,7 @@ class Server
 		void	init();				// socket, setsockopt, bind, listen
 		void	run();				// Boucle while(true) avec poll()
 		void	acceptClient();		// accept() -> new Client
-		void	receiveData(int fd);	// recv() -> parsing
+		void	receiveData(int client_fd);	// recv() -> parsing
 };
 
 #endif

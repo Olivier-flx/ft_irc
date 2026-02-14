@@ -37,13 +37,13 @@ int	main(int ac, char **argv)
 		return (EXIT_FAILURE);
 	}
 
-	//create socket
-	//Bind the socket to a IP / port
+	// create socket
+	// Bind the socket to a IP / port
 	// Mark the socket for listening in
 	// accept a call
 	// close the listening socket
 	// while reveiving display message , echo message
-	//close socket
+	// close socket
 
 	return EXIT_SUCCESS;
 }
