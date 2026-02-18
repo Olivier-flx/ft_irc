@@ -218,5 +218,48 @@ void	Server::receiveData(int client_fd)
 	if (bytes_read > 0) {
 		std::cout << "Message reçu : " << buffer << std::endl;
 	}
+	std::string msg = (buffer);
+	_clients[client_fd]->set_buffer(msg);
+	parsing_msg(client_fd, msg);
 };	// recv() -> parsing
 
+/**
+ * KICK - Eject a client from the channel
+ * 		format : KICK <channel> <user> [<comment>]
+ * INVITE - Invite a client to a channel
+ * 		format : INVITE <nickname> <channel>
+ * TOPIC - Change or view the channel topic
+ * 		format : TOPIC <channel> [<topic>]
+ * MODE - Change the channel’s mode:
+ * 		· i: Set/remove Invite-only channel
+ * 		· t: Set/remove the restrictions of the TOPIC command to channel operators
+ * 		· k: Set/remove the channel key (password)
+ * 		· o: Give/take channel operator privilege
+ * 		· l: Set/remove the user limit to channel
+ * 		format : MODE <channel> <modes> [<params>]
+ * 			exemples : MODE #channel +it
+ * 						MODE #42 -t
+ * 						MODE #42 +k secret123
+ */
+
+void	remove_trailing_rn(std::string &msg)
+{
+	//int len = msg.length();
+	msg.erase(msg.end()-2, msg.end());
+	std::cout << "Msg without trailing elements :`" << msg <<"`\n";
+}
+
+void	Server::parsing_msg(int client_fd, std::string msg)
+{
+	std::string	client_buff = _clients[client_fd]->get_buffer();
+	size_t rn_position = client_buff.find("\r\n");
+	if (rn_position == std::string::npos)
+		return ;
+	std::string cmd = client_buff.erase(rn_position, client_buff.length());
+
+
+	(void)client_fd;
+
+	remove_trailing_rn(msg);
+
+}

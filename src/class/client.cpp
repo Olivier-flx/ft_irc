@@ -42,3 +42,15 @@ Client::~Client() {
 	}
 	std::cout << "Client : Destructor called" << std::endl;
 };
+
+
+void	Client::set_buffer(std::string msg)
+{
+	_buffer.append(msg);
+	std::cout << "Client Buffer : `" << _buffer <<"`\n";
+}
+
+std::string		Client::get_buffer()
+{
+	return _buffer;
+}

@@ -30,6 +30,8 @@ class Server
 		void	run();				// Boucle while(true) avec poll()
 		void	acceptClient();		// accept() -> new Client
 		void	receiveData(int client_fd);	// recv() -> parsing
+		void	parsing_msg(int client_fd, std::string msg);
 };
+
 
 #endif

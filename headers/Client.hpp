@@ -22,6 +22,10 @@ class Client
 		Client(const Client &cpy);
 		Client &operator=(const Client &src);
 		~Client();
+
+		void			set_buffer(std::string msg);
+		std::string		get_buffer();
+		void			clear_buffer(size_t start, size_t end);
 };
 
 #endif
