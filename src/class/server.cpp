@@ -228,10 +228,6 @@ void	Server::acceptClient()
 
 };
 
-
-
-
-
 bool	Server::receiveData(int client_fd)
 {
 	std::cout << "Receiving data from fd :" << client_fd << std::endl;
@@ -247,24 +243,7 @@ bool	Server::receiveData(int client_fd)
 	return true;
 };	// recv() -> parsing
 
-/**
- * KICK - Eject a client from the channel
- * 		format : KICK <channel> <user> [<comment>]
- * INVITE - Invite a client to a channel
- * 		format : INVITE <nickname> <channel>
- * TOPIC - Change or view the channel topic
- * 		format : TOPIC <channel> [<topic>]
- * MODE - Change the channel’s mode:
- * 		· i: Set/remove Invite-only channel
- * 		· t: Set/remove the restrictions of the TOPIC command to channel operators
- * 		· k: Set/remove the channel key (password)
- * 		· o: Give/take channel operator privilege
- * 		· l: Set/remove the user limit to channel
- * 		format : MODE <channel> <modes> [<params>]
- * 			exemples : MODE #channel +it
- * 						MODE #42 -t
- * 						MODE #42 +k secret123
- */
+
 
 
 
@@ -294,6 +273,24 @@ void	Server::client_disconnection(size_t i)
 	_fds.erase(_fds.begin() + i);
 }
 
+/**
+ * KICK - Eject a client from the channel
+ * 		format : KICK <channel> <user> [<comment>]
+ * INVITE - Invite a client to a channel
+ * 		format : INVITE <nickname> <channel>
+ * TOPIC - Change or view the channel topic
+ * 		format : TOPIC <channel> [<topic>]
+ * MODE - Change the channel’s mode:
+ * 		· i: Set/remove Invite-only channel
+ * 		· t: Set/remove the restrictions of the TOPIC command to channel operators
+ * 		· k: Set/remove the channel key (password)
+ * 		· o: Give/take channel operator privilege
+ * 		· l: Set/remove the user limit to channel
+ * 		format : MODE <channel> <modes> [<params>]
+ * 			exemples : MODE #channel +it
+ * 						MODE #42 -t
+ * 						MODE #42 +k secret123
+ */
 void	Server::parse_cmd(int client_fd)
 {
 	std::string cmd = _clients[client_fd]->get_cmd();
@@ -301,6 +298,7 @@ void	Server::parse_cmd(int client_fd)
 	cmd = trim(cmd);
 
 	std::cout << "Depuis parse_cmd : `" << cmd <<"`\n";
+
 
 }
 
