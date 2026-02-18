@@ -54,3 +54,17 @@ std::string		Client::get_buffer()
 {
 	return _buffer;
 }
+
+void	Client::clear_buffer(size_t start, size_t end)
+{
+	_buffer.erase(start, end);
+	std::cout << "clear_buffer : `" << _buffer <<"`\n";
+}
+
+void	Client::set_cmd(std::string cmd) {
+	_cmd = cmd;
+}
+
+std::string		Client::get_cmd(){
+	return _cmd;
+}

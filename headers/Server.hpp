@@ -29,8 +29,12 @@ class Server
 		void	init();				// socket, setsockopt, bind, listen
 		void	run();				// Boucle while(true) avec poll()
 		void	acceptClient();		// accept() -> new Client
-		void	receiveData(int client_fd);	// recv() -> parsing
-		void	parsing_msg(int client_fd, std::string msg);
+		bool	receiveData(int client_fd);	// recv() -> parsing
+		bool	get_line_msg_to_cmd(int client_fd);
+		void	parse_cmd();
+		void	exec_cmd();
+		void	client_disconnection(size_t i);
+
 };
 
 

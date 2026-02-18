@@ -14,6 +14,7 @@ class Client
 		std::string	_username;
 		std::string	_password;
 		std::string	_buffer;                // ⚠️ CRUCIAL : Stocke les morceaux de msg
+		std::string	_cmd;
 		bool		_isRegistered;
 
 	public:
@@ -26,6 +27,9 @@ class Client
 		void			set_buffer(std::string msg);
 		std::string		get_buffer();
 		void			clear_buffer(size_t start, size_t end);
+		void			set_cmd(std::string cmd);
+		std::string		get_cmd();
+		void			clear_cmd();
 };
 
 #endif

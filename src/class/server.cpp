@@ -143,12 +143,27 @@ void	Server::run()
 		for (size_t i = 0; i < _fds.size(); i++) {
 			if (_fds[i].revents == 0)
 				continue;
+			if (_fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))
+			{
+				this->client_disconnection(i);
+				i--;
+				continue;
+			}
 			if (_fds[i].revents & POLLIN)
 			{
 				if (_fds[i].fd == _serverSocket) //Event server = nouveau client
 					this->acceptClient();
 				else
-					this->receiveData(_fds[i].fd);
+				{
+					if (false == this->receiveData(_fds[i].fd))
+						continue;
+					while (this->get_line_msg_to_cmd(_fds[i].fd))
+					{
+						this->parse_cmd();
+						this->exec_cmd();
+						_clients[_fds[i].fd]->clear_cmd();
+					}
+				}
 			}
 		}
 
@@ -210,7 +225,7 @@ void	Server::acceptClient()
 };
 
 
-void	Server::receiveData(int client_fd)
+bool	Server::receiveData(int client_fd)
 {
 	std::cout << "Receiving data from fd :" << client_fd << std::endl;
 	char buffer[1024] = {0};
@@ -218,9 +233,11 @@ void	Server::receiveData(int client_fd)
 	if (bytes_read > 0) {
 		std::cout << "Message reçu : " << buffer << std::endl;
 	}
-	std::string msg = (buffer);
+	else
+		return false;
+	std::string msg(buffer, bytes_read);
 	_clients[client_fd]->set_buffer(msg);
-	parsing_msg(client_fd, msg);
+	return true;
 };	// recv() -> parsing
 
 /**
@@ -241,25 +258,26 @@ void	Server::receiveData(int client_fd)
  * 						MODE #42 -t
  * 						MODE #42 +k secret123
  */
-
-void	remove_trailing_rn(std::string &msg)
-{
-	//int len = msg.length();
-	msg.erase(msg.end()-2, msg.end());
-	std::cout << "Msg without trailing elements :`" << msg <<"`\n";
-}
-
-void	Server::parsing_msg(int client_fd, std::string msg)
+bool	Server::get_line_msg_to_cmd(int client_fd)
 {
 	std::string	client_buff = _clients[client_fd]->get_buffer();
 	size_t rn_position = client_buff.find("\r\n");
 	if (rn_position == std::string::npos)
-		return ;
+		return false;
 	std::string cmd = client_buff.erase(rn_position, client_buff.length());
+	_clients[client_fd]->set_cmd(cmd);
+	_clients[client_fd]->clear_buffer(0, rn_position);
+	return true;
+}
 
-
-	(void)client_fd;
-
-	remove_trailing_rn(msg);
-
+void	Server::client_disconnection(size_t i)
+{
+	int	fd_to_disconnect = _fds[i].fd;
+	if(_clients.count(fd_to_disconnect))
+	{
+		delete _clients[fd_to_disconnect];
+		_clients.erase(fd_to_disconnect);
+	}
+	close(fd_to_disconnect);
+	_fds.erase(_fds.begin() + i);
 }
