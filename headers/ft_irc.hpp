@@ -32,6 +32,9 @@ bool	arg_ok(int ac, char **argv, int &port);
 
 #include <arpa/inet.h>
 
+// utils
+std::string&	trim(std::string& str);
+
 
 #endif
 

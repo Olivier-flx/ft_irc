@@ -13,7 +13,8 @@ BUILD_DIR = build
 CPP_CLASS = class/client.cpp \
 			class/server.cpp
 
-CPP_FILES = verifs/check_args.cpp
+CPP_FILES = verifs/check_args.cpp \
+			utils/trim.cpp
 
 SRC = main.cpp \
 	$(addprefix src/, $(CPP_FILES))\

@@ -31,8 +31,8 @@ class Server
 		void	acceptClient();		// accept() -> new Client
 		bool	receiveData(int client_fd);	// recv() -> parsing
 		bool	get_line_msg_to_cmd(int client_fd);
-		void	parse_cmd();
-		void	exec_cmd();
+		void	parse_cmd(int client_fd);
+		void	exec_cmd(int client_fd);
 		void	client_disconnection(size_t i);
 
 };

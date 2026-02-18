@@ -50,7 +50,7 @@ void	Client::set_buffer(std::string msg)
 	std::cout << "Client Buffer : `" << _buffer <<"`\n";
 }
 
-std::string		Client::get_buffer()
+std::string		&Client::get_buffer()
 {
 	return _buffer;
 }
@@ -67,4 +67,8 @@ void	Client::set_cmd(std::string cmd) {
 
 std::string		Client::get_cmd(){
 	return _cmd;
+}
+
+void	Client::clear_cmd(){
+	_cmd.clear();
 }

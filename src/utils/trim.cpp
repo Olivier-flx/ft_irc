@@ -1,0 +1,25 @@
+#include "ft_irc.hpp"
+
+// trim from end of string (right)
+std::string& rtrim(std::string& s)
+{
+	const char* ws = " \t\n\r\f\v";
+
+	s.erase(s.find_last_not_of(ws) + 1);
+	return s;
+}
+
+// trim from beginning of string (left)
+std::string& ltrim(std::string& s)
+{
+	const char* ws = " \t\n\r\f\v";
+
+	s.erase(0, s.find_first_not_of(ws));
+	return s;
+}
+
+// trim from both ends of string (right then left)
+std::string&	trim(std::string& str)
+{
+	return ltrim(rtrim(str));
+}

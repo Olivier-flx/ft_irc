@@ -156,11 +156,15 @@ void	Server::run()
 				else
 				{
 					if (false == this->receiveData(_fds[i].fd))
+					{
+						this->client_disconnection(i);
+						i--;
 						continue;
+					}
 					while (this->get_line_msg_to_cmd(_fds[i].fd))
 					{
-						this->parse_cmd();
-						this->exec_cmd();
+						this->parse_cmd(_fds[i].fd);
+						this->exec_cmd(_fds[i].fd);
 						_clients[_fds[i].fd]->clear_cmd();
 					}
 				}
@@ -225,6 +229,9 @@ void	Server::acceptClient()
 };
 
 
+
+
+
 bool	Server::receiveData(int client_fd)
 {
 	std::cout << "Receiving data from fd :" << client_fd << std::endl;
@@ -258,15 +265,20 @@ bool	Server::receiveData(int client_fd)
  * 						MODE #42 -t
  * 						MODE #42 +k secret123
  */
+
+
+
 bool	Server::get_line_msg_to_cmd(int client_fd)
 {
-	std::string	client_buff = _clients[client_fd]->get_buffer();
-	size_t rn_position = client_buff.find("\r\n");
+	std::string	&client_buff = _clients[client_fd]->get_buffer();
+	size_t rn_position = client_buff.find("\n");// \r\n for irc
 	if (rn_position == std::string::npos)
 		return false;
-	std::string cmd = client_buff.erase(rn_position, client_buff.length());
+	std::string cmd = client_buff.substr(0, rn_position);
+	if (!cmd.empty() && cmd[cmd.size() - 1] == '\r')
+		cmd.erase(cmd.size() - 1);
 	_clients[client_fd]->set_cmd(cmd);
-	_clients[client_fd]->clear_buffer(0, rn_position);
+	_clients[client_fd]->clear_buffer(0, rn_position + 1);
 	return true;
 }
 
@@ -281,3 +293,20 @@ void	Server::client_disconnection(size_t i)
 	close(fd_to_disconnect);
 	_fds.erase(_fds.begin() + i);
 }
+
+void	Server::parse_cmd(int client_fd)
+{
+	std::string cmd = _clients[client_fd]->get_cmd();
+
+	cmd = trim(cmd);
+
+	std::cout << "Depuis parse_cmd : `" << cmd <<"`\n";
+
+}
+
+void	Server::exec_cmd(int client_fd)
+{
+	(void) client_fd;
+	std::cout << "Depuis exec_cmd\n";
+}
+

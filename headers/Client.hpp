@@ -25,7 +25,7 @@ class Client
 		~Client();
 
 		void			set_buffer(std::string msg);
-		std::string		get_buffer();
+		std::string		&get_buffer();
 		void			clear_buffer(size_t start, size_t end);
 		void			set_cmd(std::string cmd);
 		std::string		get_cmd();
