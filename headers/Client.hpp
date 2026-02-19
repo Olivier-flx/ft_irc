@@ -15,6 +15,7 @@ class Client
 		std::string	_password;
 		std::string	_buffer;                // ⚠️ CRUCIAL : Stocke les morceaux de msg
 		bool		_isRegistered;
+		bool 		_isOperator;
 
 	public:
 		Client (int client_fd, std::string client_ip);
@@ -22,6 +23,23 @@ class Client
 		Client(const Client &cpy);
 		Client &operator=(const Client &src);
 		~Client();
+
+		//getters
+
+		std::string GetNickName();
+		std::string GetUserName();
+		std::string getIp();
+		std::string getBuffer();
+
+
+		//setters
+
+		void SetNickname(std::string &nickName);
+		void SetUsername(std::string &username);
+		void setBuffer(std::string &src);
+
+		void clearBuffer();
+
 };
 
 #endif

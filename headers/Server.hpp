@@ -12,6 +12,7 @@ class Server
 		int	_serverSocket;					// La socket d'écoute
 		std::string _password;				// Le mdp du serveur
 		int	_port;
+		static bool _Signal; // for signalhandle()
 		std::vector<pollfd> _fds;			// Pour poll()
 		std::map<int, Client*> _clients;	// FD -> Pointeur vers Client
 //		std::map<string, Channel*> _channels;	// Nom du channel -> Pointeur Channel
@@ -30,6 +31,8 @@ class Server
 		void	run();				// Boucle while(true) avec poll()
 		void	acceptClient();		// accept() -> new Client
 		void	receiveData(int fd);	// recv() -> parsing
+
+		static void SignalHandler(int signum); // signal handler
 };
 
 #endif

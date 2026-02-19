@@ -48,6 +48,15 @@ Server::~Server() {
 };
 
 
+bool Server::_Signal = false; //-> initialize the static boolean
+
+void Server::SignalHandler(int signum) //met variable à true en cas de reception d'un signal
+{
+	(void)signum;
+	std::cout << std::endl << "Signal Received!" << std::endl;
+	Server::_Signal = true; //l'état de la variable est la condition d'exec du serveur, si "true" le serveur cesse
+}
+
 void Server::_exitWithError(const std::string& msg)
 {
 	if (_serverSocket != -1) {
@@ -127,7 +136,10 @@ void	Server::run()
 {
 
 	std::cout << "run() \n";
-};				// Boucle while(true) avec poll()
+	while (Server::_Signal == false) // Boucle while(true) avec poll()
+	{
+	}
+}
 
 void	Server::acceptClient()
 {

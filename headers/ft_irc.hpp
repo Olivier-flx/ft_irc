@@ -4,32 +4,30 @@
 
 #include <cstdlib>
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+#include <sys/types.h> //for socket
+#include <sys/socket.h> 
+#include <netinet/in.h> //for sockaddr_in
 #include <string.h>
 #include <iostream>
 #include <vector>
 #include <map>
-
- #include <poll.h>
- #include <sys/types.h>
- #include <sys/stat.h>
- #include <fcntl.h>
+#include <poll.h>
+#include <sys/stat.h> //?
+#include <fcntl.h> //for fcntl()
 
 
 #include <cstdio> //perror printf
 #include <cstring> //strerror
-#include <unistd.h>
+#include <unistd.h> // for close()
+
+#include <arpa/inet.h> //to handle ip adrress, manage IPv4, etc...
+#include <cctype> // for isprint, isalpha, etc...
+#include <iomanip> //cout, stringstream, etc.. 
+#include <cerrno> //for errno
 
 
-#include <cctype>
-#include <iomanip>
-#include <cerrno>
 bool	arg_ok(int ac, char **argv, int &port);
 
-
-#include <arpa/inet.h>
 
 
 #endif
