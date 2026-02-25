@@ -15,6 +15,8 @@ Conseil : Commencer par Netcat au debut, puis passer sur Irssi pour coder les co
 
 SRCS: 
 
+https://modern.ircdocs.horse/#servers //TOP
+
 https://nathaan.me/projects/irc
 
 https://github.com/marineks/Ft_irc/blob/main/doc_irc/sockets_research
@@ -25,4 +27,3 @@ https://miro.com/app/board/uXjVMFuYfyA=/?share_link_id=256377652862
 
 https://www.csd.uoc.gr/~hy556/material/tutorials/cs556-3rd-tutorial.pdf
 
-http://chi.cs.uchicago.edu/chirc/index.html

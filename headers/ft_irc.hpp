@@ -11,7 +11,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include <poll.h>
+#include <poll.h> //struct pollfd{}
 #include <sys/stat.h> //?
 #include <fcntl.h> //for fcntl()
 
