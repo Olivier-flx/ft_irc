@@ -30,7 +30,8 @@ Server &Server::operator=(const Server &src) {
 	return (*this);
 };
 
-Server::~Server() {
+Server::~Server() 
+{
 	if (_serverSocket != -1) {
 		close(_serverSocket);
 		_serverSocket = -1;
@@ -64,6 +65,20 @@ void Server::_exitWithError(const std::string& msg)
 		_serverSocket = -1;
 	}
 	throw std::runtime_error(msg + ": " + std::strerror(errno));
+}
+
+void	Server::close_fds()
+{
+	for(size_t i = 0; i < client.size(); i++)
+	{
+		std::cout << "Client " << client[i].getFd() << "> Disconnected" << std::endl;
+		close(clients[i].getFd());
+	}
+	if (_serverSocket != -1)
+	{	
+		std::cout << "Server " << _serverSocket << "> Disconnected" << std::endl;
+		close(_serverSocket);
+	}
 }
 
 //////////////////////////////////
@@ -132,13 +147,35 @@ void	Server::init()
 	std::cout << "Serveur en attente sur le port " << _port << "..." << std::endl;
 };				// socket, setsockopt, bind, listen
 
-void	Server::run()
-{
 
-	std::cout << "run() \n";
-	while (Server::_Signal == false) // Boucle while(true) avec poll()
-	{
-	}
+/*
+boucle attend qu'il se passe un event,
+ si nouveau client → accept()
+ si message client → recv()
+recommencer
+*/
+void Server::run()
+{
+    while (_Signal == false)
+    {
+		int ready = poll(_fds.data(), _fds.size(), -1);
+		if (ready < 0)
+		{
+  			 perror("poll");
+    		continue;
+		}
+
+        for (size_t i = 0; i < _fds.size(); i++)
+        {
+            if (_fds[i].revents & POLLIN)
+            {
+                if (_fds[i].fd == _serverSocket)
+                    acceptClient();
+                else
+                    receiveData(_fds[i].fd);
+            }
+        }
+    }
 }
 
 void	Server::acceptClient()
@@ -147,6 +184,11 @@ void	Server::acceptClient()
 	struct sockaddr_storage client_sa;
 	socklen_t client_sa_len = sizeof(client_sa);
 	int client_fd = accept(_serverSocket, (struct sockaddr *)&client_sa, &client_sa_len);
+	pollfd new_pfd;
+	new_pfd.fd = client_fd;
+	new_pfd.events = POLLIN;
+	new_pfd.revents = 0;
+	_fds.push_back(new_pfd);
 	if (client_fd < 0) {
 		std::cerr << "Erreur accept : " << std::strerror(errno) << std::endl;
 		return ;
@@ -195,7 +237,7 @@ void	Server::acceptClient()
 		std::cout << "Message reçu : " << buffer << std::endl;
 	}
 
-};		// accept() -> new Client
+};	
 
 
 void	Server::receiveData(int fd)

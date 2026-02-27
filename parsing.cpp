@@ -1,29 +1,27 @@
 #include "Server.hpp"
 
 
-
-bool Server::is_validNickname(std::string& nickname)
+bool Server::isValidNickname(std::string& nickname)
 {
-		
 	if(!nickname.empty() && (nickname[0] == '&' || nickname[0] == '#' || nickname[0] == ':')) //on exclue le cas des channels
-		return false;
+		return (false);
 	for(size_t i = 1; i < nickname.size(); i++)
 	{
 		if(!std::isalnum(nickname[i]) && nickname[i] != '_') //a-z ou 0-9
-			return false;
+			return (false);
 	}
-	return true;
+	return (true);
 }
 
 
-bool Server::nickNameUsed(std::string& nickname) //pour eviter doublons de noms
+bool Server::nicknameUsed(std::string& nickname) //pour eviter doublons de noms
 {
-	for (size_t i = 0; i < this->clients.size(); i++)
+	for (size_t i = 0; i < this->client.size(); i++)
 	{
-		if (this->clients[i].GetNickName() == nickname)
-			return true;
+		if (this->client[i].getNickname() == nickname)
+			return (true);
 	}
-	return false;
+	return (false);
 }
 
 

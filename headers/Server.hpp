@@ -31,11 +31,11 @@ class Server
 		void	run();				// Boucle while(true) avec poll()
 		void	acceptClient();		// accept() -> new Client
 		void	receiveData(int fd);	// recv() -> parsing
-
+		void	close_fds();
 
 		//Parsing
-		bool nickNameUsed(std::string& nickname);
-		bool validNickname(std::string& nickname);
+		bool nicknameUsed(std::string& nickname);
+		bool isValidNickname(std::string& nickname);
 
 		static void SignalHandler(int signum); // signal handler
 };
