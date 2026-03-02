@@ -38,11 +38,19 @@ class Server
 
 		void	close_fds();
 
-		//Parsing
+		static void SignalHandler(int signum); // signal handler
+
+		//Authentification
 		bool nicknameUsed(std::string& nickname);
 		bool isValidNickname(std::string& nickname);
 
-		static void SignalHandler(int signum); // signal handler
+		void handlePass(int fd, std::istringstream &iss);
+		void handleNick(int fd, std::istringstream &iss);
+		void handleUser(int fd, std::istringstream &iss);
+		void tryRegister(int fd);
+		const std::string& getCreationTime() const;
+		void sendMessage(int fd, const std::string &msg);
+
 };
 
 

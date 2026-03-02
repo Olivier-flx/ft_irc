@@ -1,15 +1,17 @@
 #include "ft_irc.hpp"
 #include "Server.hpp"
 
-Server::Server( void ){
-	std::cout << "Server : Default Constructor called" << std::endl;
-};
-
 Server::Server(int port, std::string password )
 				:	_port(port),
 					_password (password)
 {
 	_Signal = false;
+
+	std::time_t t = std::time(nullptr);
+    _creationTime = std::ctime(&t);          // récupère date/heure en string
+    if (!_creationTime.empty() && _creationTime.back() == '\n')
+    	_creationTime.pop_back();            // supprime le '\n' ajouté par ctime
+
 	std::cout << "Server : Constructor called" << std::endl;
 };
 
@@ -49,6 +51,7 @@ Server::~Server()
 	std::cout << "Server : Destructor called" << std::endl;
 };
 
+const std::string& Server::getCreationTime() const { return _creationTime; }
 
 bool Server::_Signal = false; //-> initialize the static boolean
 
@@ -361,7 +364,44 @@ void	Server::parse_cmd(int client_fd)
 
 void	Server::exec_cmd(int client_fd)
 {
-	(void) client_fd;
 	//std::cout << "Depuis exec_cmd\n";
+    std::string cmd = _clients[fd]->getCmd();
+    std::istringstream iss(cmd);
+    std::string command;
+    iss >> command;
+
+    if (command == "PASS")
+        handlePass(fd, iss);
+    else if (command == "NICK")
+        handleNick(fd, iss);
+    else if (command == "USER")
+        handleUser(fd, iss);
 }
 
+
+//----VALIDATION NICKNAME---- 
+
+bool Server::isValidNickname(std::string& nickname)
+{
+	if (nickname.empty())
+        return (false);
+	if((nickname[0] == '&' || nickname[0] == '#' || nickname[0] == ':')) //on exclue le cas des channels
+		return (false);
+	for(size_t i = 0; i < nickname.size(); i++)
+	{
+		if(!std::isalnum(nickname[i]) && nickname[i] != '_') //a-z ou 0-9
+			return (false);
+	}
+	return (true);
+}
+
+
+bool Server::nicknameUsed(std::string& nickname) //pour eviter doublons de noms
+{
+    for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		if (it->second->getNickname() == nickname)
+			return (true);
+	}
+	return (false);
+}
