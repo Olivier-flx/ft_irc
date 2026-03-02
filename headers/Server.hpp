@@ -9,9 +9,10 @@ class Server
 {
 	private:
 		Server(void);
-		int	_serverSocket;					// La socket d'écoute
-		std::string _password;				// Le mdp du serveur
+		int	_serverSocket;				// La socket d'écoute
 		int	_port;
+		std::string _password;				// Le mdp du serveur
+		static bool _Signal; // for signalhandle()
 		std::vector<pollfd> _fds;			// Pour poll()
 		std::map<int, Client*> _clients;	// FD -> Pointeur vers Client
 //		std::map<string, Channel*> _channels;	// Nom du channel -> Pointeur Channel
@@ -35,6 +36,13 @@ class Server
 		void	exec_cmd(int client_fd);
 		void	client_disconnection(size_t i);
 
+		void	close_fds();
+
+		//Parsing
+		bool nicknameUsed(std::string& nickname);
+		bool isValidNickname(std::string& nickname);
+
+		static void SignalHandler(int signum); // signal handler
 };
 
 

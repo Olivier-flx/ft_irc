@@ -1,36 +1,34 @@
 
 #include "Client.hpp"
 
-Client::Client( void ){
-	std::cout << "Client : Default Constructor called" << std::endl;
-};
-
-Client::Client(int fd, std::string ip)
-				:	_fd(fd),
-					_ip (ip) {
-	std::cout << "Client : Constructor called" << std::endl;
-};
-
-Client::Client(std::string nickname, std::string username, std::string password)
-				:	_nickname(nickname),
-					_username (username),
-					_password (password) {
-	std::cout << "Client : Constructor called" << std::endl;
-};
-
-Client::Client(const Client &cpy) {
-	std::cout << "Client : Copy Constructor called" << std::endl;
-	*this = cpy;
+Client::Client( void )
+{
+	this->_fd = -1; //car fd valid >=0
+	this->_ip = "";
+	this->_nickname = "";
+	this->_username = "";
+	this->_buffer = "";
+	this->_Authenticated = false;
+	this->_isOperator= false;
+	this->_isRegistered = false;
 }
 
-Client &Client::operator=(const Client &src) {
-	std::cout << "Client : Overload=  called" << std::endl;
-	if (this != &src) {
-		_nickname = src._nickname;
-		_username = src._username;
-		_password = src._password;
-		_buffer = src._buffer;
-		_isRegistered = src._isRegistered;
+Client::Client(std::string nickname, std::string username, int fd): _nickname(nickname), _username(username), _fd(fd), {}
+
+Client::Client(const Client &cpy) { *this = cpy; }
+
+Client &Client::operator=(const Client &src)
+{
+	if (this != &src)
+	{
+		this->_nickname = src._nickname;
+		this->_username = src._username;
+		this->_fd = src._fd;
+		this->_ip = src._ip;
+		this->_buffer = src._buffer;
+		this->_Authenticated = src._Authenticated;
+		this->_isOperator= src._isOperator;
+		this->_isRegistered = src._isRegistered;
 	}
 	return (*this);
 };
@@ -43,32 +41,45 @@ Client::~Client() {
 	std::cout << "Client : Destructor called" << std::endl;
 };
 
+////////////////////////////////////////////////////////////
 
-void	Client::set_buffer(std::string msg)
-{
-	_buffer.append(msg);
-	std::cout << "Client Buffer : `" << _buffer <<"`\n";
-}
+//[IDENTITE]
+	// getters
+	int 				Client::getFd() const { return (this->_fd); }
+	const std::string	&Client::getIp() const { return (this->_ip); }
+	const std::string	&Client::getNickname() const { return (this->_nickname); }
+	const std::string	&Client::getUsername() const { return (this->_username); }
+	const std::string	Client::getHostname() const { return (_nickname + "!" + _username); }
 
-std::string		&Client::get_buffer()
-{
-	return _buffer;
-}
+	// setters
+	void			Client::setFd(int fd) { _fd = fd; }
+	void			Client::setIpAdd(const std::string &ipadd) { _ip = ipadd; }
+	void			Client::setNickname(const std::string &nickname) { _nickname = nickname; }
+	void			Client::setUsername(const std::string &username) { _username = username; }
 
-void	Client::clear_buffer(size_t start, size_t end)
-{
-	_buffer.erase(start, end);
-	std::cout << "clear_buffer : `" << _buffer <<"`\n";
-}
+//[ETAT]
+	// getters
+	bool			Client::isRegistered() const { return (_isRegistered); }
+	bool			Client::isAuthenticated() const { return (_Authenticated); }
+	bool			Client::isOperator() const { return (this->isOperator); }
 
-void	Client::set_cmd(std::string cmd) {
-	_cmd = cmd;
-}
+	// setters
+	void			Client::setOperator(bool value){ _isOperator = value; }
+	void			Client::setRegistered(bool value) { _isRegistered = value; }
 
-std::string		Client::get_cmd(){
-	return _cmd;
-}
+//[BUFFER & COMMANDS]
+	// getters
+	std::string			&Client::getBuffer() { return _buffer; }
+	const std::string	Client::getCmd() { return _cmd; }
 
-void	Client::clear_cmd(){
-	_cmd.clear();
-}
+	// setters
+	void			Client::appendBuffer(const std::string& msg) { _buffer += msg; }
+	void			Client::setCmd(const std::string &cmd) { _cmd = cmd; }
+
+	// methodes
+	void	Client::clearBuffer(size_t start, size_t end) {
+		_buffer.erase(start, end);
+		std::cout << "clear_buffer : `" << _buffer <<"`\n";
+	}
+
+	void				clearCmd() {_cmd.clear();};

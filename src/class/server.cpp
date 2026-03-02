@@ -9,6 +9,7 @@ Server::Server(std::string password, int port)
 				:	_password (password),
 					_port(port)
 {
+	_Signal = false;
 	std::cout << "Server : Constructor called" << std::endl;
 };
 
@@ -30,7 +31,8 @@ Server &Server::operator=(const Server &src) {
 	return (*this);
 };
 
-Server::~Server() {
+Server::~Server()
+{
 	if (_serverSocket != -1) {
 		close(_serverSocket);
 		_serverSocket = -1;
@@ -48,6 +50,15 @@ Server::~Server() {
 };
 
 
+bool Server::_Signal = false; //-> initialize the static boolean
+
+void Server::SignalHandler(int signum) //met variable à true en cas de reception d'un signal
+{
+	(void)signum;
+	std::cout << std::endl << "Signal Received!" << std::endl;
+	Server::_Signal = true; //l'état de la variable est la condition d'exec du serveur, si "true" le serveur cesse
+}
+
 void Server::_exitWithError(const std::string& msg)
 {
 	if (_serverSocket != -1) {
@@ -55,6 +66,20 @@ void Server::_exitWithError(const std::string& msg)
 		_serverSocket = -1;
 	}
 	throw std::runtime_error(msg + ": " + std::strerror(errno));
+}
+
+void	Server::close_fds()
+{
+	for(size_t i = 0; i < client.size(); i++)
+	{
+		std::cout << "Client " << client[i].getFd() << "> Disconnected" << std::endl;
+		close(clients[i].getFd());
+	}
+	if (_serverSocket != -1)
+	{
+		std::cout << "Server " << _serverSocket << "> Disconnected" << std::endl;
+		close(_serverSocket);
+	}
 }
 
 //////////////////////////////////
@@ -128,6 +153,12 @@ void	Server::init()
 };				// socket, setsockopt, bind, listen
 
 //https://beej.us/guide/bgnet/html/split-wide/slightly-advanced-techniques.html
+/*
+boucle attend qu'il se passe un event,
+ si nouveau client → accept()
+ si message client → recv()
+recommencer
+*/
 void	Server::run()
 {
 	struct pollfd server_pfd;
@@ -135,36 +166,42 @@ void	Server::run()
 	server_pfd.events = POLLIN;
 	server_pfd.revents = 0;
 	_fds.push_back(server_pfd);
-	while (true)
+	while (true && _Signal == false)
 	{
-		if(-1 == poll(_fds.data(), (nfds_t) _fds.size(), -1)) //https://beej.us/guide/bgnet/html/split-wide/slightly-advanced-techniques.html#:~:text=You%20can%20specify%20a%20negative%20timeout
-				_exitWithError("Poll failed ");
+		int ready = poll(_fds.data(), (nfds_t) _fds.size(), -1);
+		if(-1 == ready) //https://beej.us/guide/bgnet/html/split-wide/slightly-advanced-techniques.html#:~:text=You%20can%20specify%20a%20negative%20timeout
+		{
+			if (_Signal)
+				break;
+			_exitWithError("Poll failed ");// exit or continue ??
+		}
+
 		// 3. On parcourt le tableau pour voir qui a généré un événement
 		for (size_t i = 0; i < _fds.size(); i++) {
 			if (_fds[i].revents == 0)
 				continue;
 			if (_fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))
 			{
-				this->client_disconnection(i);
+				client_disconnection(i);
 				i--;
 				continue;
 			}
 			if (_fds[i].revents & POLLIN)
 			{
 				if (_fds[i].fd == _serverSocket) //Event server = nouveau client
-					this->acceptClient();
+					acceptClient();
 				else
 				{
-					if (false == this->receiveData(_fds[i].fd))
+					if (false == receiveData(_fds[i].fd))
 					{
-						this->client_disconnection(i);
+						client_disconnection(i);
 						i--;
 						continue;
 					}
-					while (this->get_line_msg_to_cmd(_fds[i].fd))
+					while (get_line_msg_to_cmd(_fds[i].fd))
 					{
-						this->parse_cmd(_fds[i].fd);
-						this->exec_cmd(_fds[i].fd);
+						parse_cmd(_fds[i].fd);
+						exec_cmd(_fds[i].fd);
 						_clients[_fds[i].fd]->clear_cmd();
 					}
 				}
@@ -172,6 +209,7 @@ void	Server::run()
 		}
 
 	}
+	this->close_fds();
 };
 
 void	Server::acceptClient()
@@ -180,6 +218,11 @@ void	Server::acceptClient()
 	struct sockaddr_storage client_sa;
 	socklen_t client_sa_len = sizeof(client_sa);
 	int client_fd = accept(_serverSocket, (struct sockaddr *)&client_sa, &client_sa_len);
+	pollfd new_pfd;
+	new_pfd.fd = client_fd;
+	new_pfd.events = POLLIN;
+	new_pfd.revents = 0;
+	_fds.push_back(new_pfd);
 	if (client_fd < 0) {
 		std::cerr << "Erreur accept : " << std::strerror(errno) << std::endl;
 		return ;
@@ -239,7 +282,7 @@ bool	Server::receiveData(int client_fd)
 	else
 		return false;
 	std::string msg(buffer, bytes_read);
-	_clients[client_fd]->set_buffer(msg);
+	_clients[client_fd]->appendBuffer(msg);
 	return true;
 };	// recv() -> parsing
 

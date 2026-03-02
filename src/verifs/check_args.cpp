@@ -1,4 +1,3 @@
-
 #include "ft_irc.hpp"
 
 static int	check_ac(int ac)

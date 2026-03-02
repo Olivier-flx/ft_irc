@@ -28,6 +28,8 @@ int	main(int ac, char **argv)
 	try
 	{
 		Server serv(password, port);
+		signal(SIGINT, Server::SignalHandler); //gère signal (ctrl + c)
+		signal(SIGQUIT, Server::SignalHandler); //-> gère signal (ctrl + \)
 		serv.init();
 		serv.run();
 	}
