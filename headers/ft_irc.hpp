@@ -25,6 +25,8 @@
 #include <iomanip> //cout, stringstream, etc..
 #include <cerrno> //for errno
 
+#include <csignal>
+
 
 bool	arg_ok(int ac, char **argv, int &port);
 

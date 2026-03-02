@@ -21,7 +21,7 @@ class Server
 
 	public:
 
-		Server(std::string password, int port);
+		Server(int port, std::string password);
 		Server(const Server &cpy);
 		Server &operator=(const Server &src);
 		~Server();

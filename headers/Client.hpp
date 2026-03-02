@@ -21,7 +21,8 @@ class Client
 		bool 		_isOperator;
 
 	public:
-		Client(std::string nickname, std::string username, int fd); //fd au lieu de password car on connait le fd au moment où on accepte la connexion mais pas encore le password
+		Client (int client_fd, std::string client_ip);
+		Client(std::string nickname, std::string username, int fd); //[NON UTILISE] //fd au lieu de password car on connait le fd au moment où on accepte la connexion mais pas encore le password
 		Client(const Client &cpy);
 		Client &operator=(const Client &src);
 		~Client();

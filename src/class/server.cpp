@@ -5,9 +5,9 @@ Server::Server( void ){
 	std::cout << "Server : Default Constructor called" << std::endl;
 };
 
-Server::Server(std::string password, int port)
-				:	_password (password),
-					_port(port)
+Server::Server(int port, std::string password )
+				:	_port(port),
+					_password (password)
 {
 	_Signal = false;
 	std::cout << "Server : Constructor called" << std::endl;
@@ -68,19 +68,28 @@ void Server::_exitWithError(const std::string& msg)
 	throw std::runtime_error(msg + ": " + std::strerror(errno));
 }
 
-void	Server::close_fds()
+void Server::close_fds()
 {
-	for(size_t i = 0; i < client.size(); i++)
+	std::map<int, Client*>::iterator it;
+	for (it = _clients.begin(); it != _clients.end(); ++it)
 	{
-		std::cout << "Client " << client[i].getFd() << "> Disconnected" << std::endl;
-		close(clients[i].getFd());
+		int fd = it->first;
+		Client* obj = it->second;
+
+		std::cout << "Client " << fd << " (Nick: " << obj->getNickname() << ") > Disconnected" << std::endl;
+		close(fd);
+		delete obj; // libèration de la mémoire allouée (le Client*)
 	}
+	_clients.clear();
+
 	if (_serverSocket != -1)
 	{
-		std::cout << "Server " << _serverSocket << "> Disconnected" << std::endl;
+		std::cout << "Server (FD: " << _serverSocket << ") > Shutting down" << std::endl;
 		close(_serverSocket);
+		_serverSocket = -1;
 	}
 }
+
 
 //////////////////////////////////
 ///////////// METHODES //////////
@@ -202,7 +211,7 @@ void	Server::run()
 					{
 						parse_cmd(_fds[i].fd);
 						exec_cmd(_fds[i].fd);
-						_clients[_fds[i].fd]->clear_cmd();
+						_clients[_fds[i].fd]->clearCmd();
 					}
 				}
 			}
@@ -218,11 +227,6 @@ void	Server::acceptClient()
 	struct sockaddr_storage client_sa;
 	socklen_t client_sa_len = sizeof(client_sa);
 	int client_fd = accept(_serverSocket, (struct sockaddr *)&client_sa, &client_sa_len);
-	pollfd new_pfd;
-	new_pfd.fd = client_fd;
-	new_pfd.events = POLLIN;
-	new_pfd.revents = 0;
-	_fds.push_back(new_pfd);
 	if (client_fd < 0) {
 		std::cerr << "Erreur accept : " << std::strerror(errno) << std::endl;
 		return ;
@@ -271,36 +275,46 @@ void	Server::acceptClient()
 
 };
 
+
+/*
+	////EWOULDBLOCK : "Would Block" : Normalement, si on appelle recv() et qu'il n'y a rien, le programme s'arrête et attend (il "bloque"). Mais comme configuré en non-bloquant, le système refuse de s'arrêter.
+	///continue la boucle, ne déconnecte pas.
+
+*/
 bool	Server::receiveData(int client_fd)
 {
 	std::cout << "Receiving data from fd :" << client_fd << std::endl;
 	char buffer[1024] = {0};
 	ssize_t bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 	if (bytes_read > 0) {
-		std::cout << "Message reçu : " << buffer << std::endl;
+		std::string msg(buffer, bytes_read);
+		_clients[client_fd]->appendBuffer(msg);
+		return true;
 	}
-	else
+	else if (bytes_read == 0) { // client a ferme la connection
+		std::cout << "Client " << client_fd << " a fermé la connexion." << std::endl;
 		return false;
-	std::string msg(buffer, bytes_read);
-	_clients[client_fd]->appendBuffer(msg);
-	return true;
+	}
+	else { // (-1) varif de si vide ou vrai erreur de recv()
+		if (errno == EAGAIN || errno == EWOULDBLOCK) //EAGAIN : "Try Again" (ressource indisponible) //EWOULDBLOCK : "Would Block"
+			return true; // OK
+		return false; // erreur réseau
+	}
 };	// recv() -> parsing
-
-
 
 
 
 bool	Server::get_line_msg_to_cmd(int client_fd)
 {
-	std::string	&client_buff = _clients[client_fd]->get_buffer();
+	std::string	&client_buff = _clients[client_fd]->getBuffer();
 	size_t rn_position = client_buff.find("\n");// \r\n for irc
 	if (rn_position == std::string::npos)
 		return false;
 	std::string cmd = client_buff.substr(0, rn_position);
 	if (!cmd.empty() && cmd[cmd.size() - 1] == '\r')
 		cmd.erase(cmd.size() - 1);
-	_clients[client_fd]->set_cmd(cmd);
-	_clients[client_fd]->clear_buffer(0, rn_position + 1);
+	_clients[client_fd]->setCmd(cmd);
+	_clients[client_fd]->clearBuffer(0, rn_position + 1);
 	return true;
 }
 
@@ -336,7 +350,7 @@ void	Server::client_disconnection(size_t i)
  */
 void	Server::parse_cmd(int client_fd)
 {
-	std::string cmd = _clients[client_fd]->get_cmd();
+	std::string cmd = _clients[client_fd]->getCmd();
 
 	cmd = trim(cmd);
 
@@ -348,6 +362,6 @@ void	Server::parse_cmd(int client_fd)
 void	Server::exec_cmd(int client_fd)
 {
 	(void) client_fd;
-	std::cout << "Depuis exec_cmd\n";
+	//std::cout << "Depuis exec_cmd\n";
 }
 

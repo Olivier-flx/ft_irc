@@ -1,6 +1,7 @@
 
 #include "Client.hpp"
 
+//[NOT USED]
 Client::Client( void )
 {
 	this->_fd = -1; //car fd valid >=0
@@ -13,7 +14,27 @@ Client::Client( void )
 	this->_isRegistered = false;
 }
 
-Client::Client(std::string nickname, std::string username, int fd): _nickname(nickname), _username(username), _fd(fd), {}
+//[USED]
+Client::Client(int fd, std::string ip)
+				:	_fd(fd),
+					_ip (ip),
+					_nickname (""),
+					_username (""),
+					_buffer (""),
+					_Authenticated (false),
+					_isRegistered (false),
+					_isOperator (false) {
+	std::cout << "Client : Constructor called" << std::endl;
+};
+
+//[NOT USED]
+Client::Client(std::string nickname, std::string username, int fd)
+	: _fd(fd), _nickname(nickname), _username(username)
+{
+	this->_Authenticated = false;
+	this->_isRegistered = false;
+	this->_isOperator = false;
+}
 
 Client::Client(const Client &cpy) { *this = cpy; }
 
@@ -61,7 +82,7 @@ Client::~Client() {
 	// getters
 	bool			Client::isRegistered() const { return (_isRegistered); }
 	bool			Client::isAuthenticated() const { return (_Authenticated); }
-	bool			Client::isOperator() const { return (this->isOperator); }
+	bool			Client::isOperator() const { return (this->_isOperator); }
 
 	// setters
 	void			Client::setOperator(bool value){ _isOperator = value; }
@@ -69,8 +90,8 @@ Client::~Client() {
 
 //[BUFFER & COMMANDS]
 	// getters
-	std::string			&Client::getBuffer() { return _buffer; }
-	const std::string	Client::getCmd() { return _cmd; }
+	std::string		&Client::getBuffer() { return _buffer; }
+	std::string		Client::getCmd() const { return _cmd; }
 
 	// setters
 	void			Client::appendBuffer(const std::string& msg) { _buffer += msg; }
@@ -79,7 +100,7 @@ Client::~Client() {
 	// methodes
 	void	Client::clearBuffer(size_t start, size_t end) {
 		_buffer.erase(start, end);
-		std::cout << "clear_buffer : `" << _buffer <<"`\n";
+		//std::cout << "clearbuffer : `" << _buffer <<"`\n";
 	}
 
-	void				clearCmd() {_cmd.clear();};
+	void	Client::clearCmd() {_cmd.clear();};
