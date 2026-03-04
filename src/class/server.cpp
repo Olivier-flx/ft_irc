@@ -365,17 +365,17 @@ void	Server::parse_cmd(int client_fd)
 void	Server::exec_cmd(int client_fd)
 {
 	//std::cout << "Depuis exec_cmd\n";
-    std::string cmd = _clients[fd]->getCmd();
+    std::string cmd = _clients[client_fd]->getCmd();
     std::istringstream iss(cmd);
     std::string command;
     iss >> command;
 
     if (command == "PASS")
-        handlePass(fd, iss);
+        handlePass(client_fd, iss);
     else if (command == "NICK")
-        handleNick(fd, iss);
+        handleNick(client_fd, iss);
     else if (command == "USER")
-        handleUser(fd, iss);
+        handleUser(client_fd, iss);
 }
 
 
@@ -395,13 +395,17 @@ bool Server::isValidNickname(std::string& nickname)
 	return (true);
 }
 
-
-bool Server::nicknameUsed(std::string& nickname) //pour eviter doublons de noms
+bool Server::nicknameUsed(std::string& nickname)
 {
+    std::string lowerNick = nickname;
+    std::transform(lowerNick.begin(), lowerNick.end(), lowerNick.begin(), ::tolower); //convertit du debut a la fin et stocke dès le debut de la string
+
     for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-	{
-		if (it->second->getNickname() == nickname)
-			return (true);
-	}
-	return (false);
+    {
+        std::string existing = it->second->getNickname(); //commence a second (pointeur vers objet Client) car first est le fd du client
+        std::transform(existing.begin(), existing.end(), existing.begin(), ::tolower);
+        if (existing == lowerNick)
+            return (true);
+    }
+    return (false);
 }
