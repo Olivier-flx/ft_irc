@@ -86,6 +86,7 @@ Client::~Client() {
 
 	// setters
 	void			Client::setOperator(bool value){ _isOperator = value; }
+	void 			Client::setAuthenticated(bool value) { _Authenticated = value; }
 	void			Client::setRegistered(bool value) { _isRegistered = value; }
 
 //[BUFFER & COMMANDS]

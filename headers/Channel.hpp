@@ -19,6 +19,9 @@ class Channel
     void addMember(Client* client);
     void removeMember(Client* client);
     bool isAdmin(Client* client) const;
+
+    std::vector<Client*> getMembers() const;
+    std::string getTopic() const;
 };
 
   #endif

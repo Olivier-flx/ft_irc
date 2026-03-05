@@ -1,9 +1,9 @@
-
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
 #include "ft_irc.hpp"
 #include "Client.hpp"
+#include "Channel.hpp"
 
 class Server
 {
@@ -15,7 +15,8 @@ class Server
 		static bool _Signal; // for signalhandle()
 		std::vector<pollfd> _fds;			// Pour poll()
 		std::map<int, Client*> _clients;	// FD -> Pointeur vers Client
-//		std::map<string, Channel*> _channels;	// Nom du channel -> Pointeur Channel
+		std::map<std::string, Channel*> _channels;	// Nom du channel -> Pointeur Channel
+		std::string _creationTime;
 
 		void _exitWithError(const std::string& msg);
 
@@ -50,6 +51,9 @@ class Server
 		void tryRegister(int fd);
 		const std::string& getCreationTime() const;
 		void sendMessage(int fd, const std::string &msg);
+
+		//Commands
+		void handleJoin(int fd, std::istringstream &iss);
 
 };
 

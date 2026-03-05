@@ -14,9 +14,9 @@ class Client
 		std::string	_username;
 		std::string	_hostname;
 		std::string	_password;
-		std::string	_buffer;                // Stocke les morceaux de msg
+		std::string	_buffer;   // Stocke les morceaux de msg
 		std::string	_cmd;
-		bool 		_Authenticated; //a envoyé le bon username, nickname et password
+		bool 		_Authenticated; //a envoyé le bon password
 		bool		_isRegistered; // a envoyé nick + user + pass ET a un fd (= a été accepée par le serveur)
 		bool 		_isOperator;
 
@@ -50,6 +50,7 @@ class Client
 
 			// setters
 			void				setOperator(bool value);
+			void 				setAuthenticated(bool value);
 			void				setRegistered(bool value);
 
 		//[BUFFER & COMMANDS]
