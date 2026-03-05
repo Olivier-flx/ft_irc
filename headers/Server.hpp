@@ -54,6 +54,7 @@ class Server
 
 		//Commands
 		void handleJoin(int fd, std::istringstream &iss);
+		void handlePrivMsg(int fd, std::istringstream &iss);
 
 };
 

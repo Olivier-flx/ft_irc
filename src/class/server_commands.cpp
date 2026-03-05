@@ -150,3 +150,79 @@ void Server::handleJoin(int fd, std::istringstream &iss)
         sendMessage(fd, topic_msg); //msg envoyé uniquement à celui qui rejoint
     }
 }
+
+
+void Server::handlePrivMsg(int fd, std::istringstream &iss)
+{
+    std::string target;
+    iss >> target; //channel ou nickname 
+
+    if (target.empty())
+    {
+        sendMessage(fd, "411 :No recipient given (PRIVMSG)");
+        return;
+    }
+
+    std::string message;
+    std::getline(iss, message);
+
+    if (!message.empty() && message[0] == ':')
+        message.erase(0, 1);
+
+    if (message.empty())
+    {
+        sendMessage(fd, "412 :No text to send");
+        return;
+    }
+
+    Client* sender = _clients[fd];
+
+    if (target[0] == '#' || target[0] == '&') 
+    {
+        if (_channels.find(target) == _channels.end())
+        {
+            sendMessage(fd, "403 " + target + " :No such channel");
+            return;
+        }
+
+        Channel* ch = _channels[target];
+
+        std::vector<Client*> members = ch->getMembers();
+        if (std::find(members.begin(), members.end(), sender) == members.end())
+        {
+            sendMessage(fd, "404 " + target + " :Cannot send to channel (not member)");
+            return;
+        }
+
+        std::string full_msg = ":" + sender->getHostname() + " PRIVMSG " + target + " :" + message + "\r\n";
+
+        members = ch->getMembers();
+        for (std::vector<Client*>::iterator it = members.begin(); it != members.end(); ++it) // envoi à tous les membres sauf à celui qui envoie le msg
+        {
+            Client* c = *it;
+            if (c->getFd() != fd)
+                send(c->getFd(), full_msg.c_str(), full_msg.size(), 0);
+        }
+    }
+    else
+    {
+        Client* receiver = nullptr;
+        for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+        {
+            if (it->second->getNickname() == target)
+            {
+                receiver = it->second;
+                break;
+            }
+        }
+
+        if (!receiver)
+        {
+            sendMessage(fd, "401 " + target + " :No such nick");
+            return;
+        }
+
+        std::string full_msg = ":" + sender->getHostname() + " PRIVMSG " + target + " :" + message + "\r\n";
+        send(receiver->getFd(), full_msg.c_str(), full_msg.size(), 0);
+    }
+}
