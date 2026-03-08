@@ -18,7 +18,7 @@ class Client
 		std::string	_cmd;
 		bool 		_Authenticated; //a envoyé le bon password
 		bool		_isRegistered; // a envoyé nick + user + pass ET a un fd (= a été accepée par le serveur)
-		bool 		_isOperator;
+		bool 		_isOperator; //droit speciaux sur le serveur entier (KILL, OPER, .. )
 
 	public:
 		Client (int client_fd, std::string client_ip);

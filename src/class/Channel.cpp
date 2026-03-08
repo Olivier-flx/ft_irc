@@ -1,8 +1,7 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 
-Channel::Channel(std::string name): _name(name), _topic(""){}
-
+Channel::Channel(std::string name): _name(name), _topic(""), _topicRestricted(false), _inviteOnly(false){}
 
 void Channel::addMember(Client* client)
 {
@@ -31,6 +30,22 @@ void Channel::removeMember(Client* client)
 }
 
 
+//methodes pour MODE
+void Channel::addAdmin(Client* c)
+{
+    if (std::find(_admins.begin(), _admins.end(), c) == _admins.end())
+        _admins.push_back(c);
+}
+
+void Channel::removeAdmin(Client* c)
+{
+    std::vector<Client*>::iterator it = std::find(_admins.begin(), _admins.end(), c);
+    if (it != _admins.end())
+        _admins.erase(it);
+}
+
+
+//getters
 bool Channel::isAdmin(Client* client) const
 {
     if (!client)
@@ -38,14 +53,80 @@ bool Channel::isAdmin(Client* client) const
     return (std::find(_admins.begin(), _admins.end(), client) != _admins.end());
 }
 
-// getter membres
-std::vector<Client*> Channel::getMembers() const
+
+const std::vector<Client*>& Channel::getMembers() const
 {
     return _members;
 }
 
-// getter topic
+
 std::string Channel::getTopic() const
 {
     return _topic;
+}
+
+bool Channel::isTopicRestricted() const
+{
+    return _topicRestricted;
+}
+
+bool Channel::isInviteOnly() const
+{
+    return _inviteOnly;
+}
+
+std::string Channel::getModes() const 
+{
+    std::string res;
+    if (_topicRestricted) 
+        res += "t";
+    if (_inviteOnly) 
+        res += "i";
+    return (res);
+}
+
+//setters
+void Channel::setTopic(const std::string &topic)
+{
+    _topic = topic;
+}
+
+void Channel::setInviteOnly(bool value)
+{
+    _inviteOnly = value;
+}
+
+void Channel::setTopicRestriction(bool value)
+{
+    _topicRestricted = value;
+}
+
+
+void Channel::setMode(char mode, const std::string &param)
+{
+    if (mode == 'k') // mot de passe
+        _key = param;
+
+    else if (mode == 'l') // limite de clients
+    {
+        if (param.empty())
+            _limit = 0;
+
+        else
+        {
+            std::stringstream ss(param); //crée ss avec contenu de param(permet de lire et ecrire dans le flux)
+            
+            int value = 0;
+            ss >> value; //conversion en int si input valide
+
+            if (ss.fail() || !ss.eof() || value < 0) // checke si conversion a échoué, s'il reste des caractères apres l entier ou si neg
+            {
+                _limit = 0;
+            }
+            else
+            {
+                _limit = value;
+            }
+        }
+    }
 }
