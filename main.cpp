@@ -1,6 +1,6 @@
 
 #include "ft_irc.hpp"
-#include "class.hpp"
+#include "Server.hpp"
 
 /**
  * Pour tester : Ouvrir deux terminaux

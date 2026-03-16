@@ -3,7 +3,7 @@
 
 /*
 std::istringstream transforme string en flux de lecture
-on peut utiliser >> pour lire mot par mot 
+on peut utiliser >> pour lire mot par mot
 (séparé par les espaces)
 */
 
@@ -24,7 +24,7 @@ void Server::handlePass(int fd, std::istringstream &iss)
     if (iss >> extra) // s'il y a un autre mot après pass
 	{
         sendMessage(fd, "461 PASS: Too many parameters");
-        return;	
+        return;
     }
 
     if (pass != _password)
@@ -37,10 +37,10 @@ void Server::handlePass(int fd, std::istringstream &iss)
 }
 
 /*
-Dans vrai IRC le client analyse le code numerique en 
+Dans vrai IRC le client analyse le code numerique en
 debut de message (ex 432 : no nickename),
 dans notre cas pas obligatoire pour nc, mais
-c'est RFC-compliant etçca fait plus réaliste 
+c'est RFC-compliant etçca fait plus réaliste
 */
 
 void Server::handleNick(int fd, std::istringstream &iss)
@@ -134,13 +134,13 @@ void Server::handleJoin(int fd, std::istringstream &iss)
         sendMessage(fd, "443 " + client->getNickname() + " " + channelName + " :is already on channel");
         return;
     }
-  
+
     ch->addMember(client);
-    
+
     members = ch->getMembers();
     std::string join_msg = ":" + client->getNickname() + " JOIN " + channelName + "\r\n";
     for (std::vector<Client*>::iterator it = members.begin(); it != members.end(); ++it)
-    {   
+    {
         Client* m = *it;
         int ret = send(m->getFd(), join_msg.c_str(), join_msg.size(), 0); //broadcast le join à chaque membre du channel
         if (ret == -1)
@@ -158,7 +158,7 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 void Server::handlePrivMsg(int fd, std::istringstream &iss)
 {
     std::string target;
-    iss >> target; //channel ou nickname 
+    iss >> target; //channel ou nickname
 
     if (target.empty())
     {
@@ -180,7 +180,7 @@ void Server::handlePrivMsg(int fd, std::istringstream &iss)
 
     Client* sender = _clients[fd];
 
-    if (target[0] == '#' || target[0] == '&') 
+    if (target[0] == '#' || target[0] == '&')
     {
         if (_channels.find(target) == _channels.end())
         {
@@ -207,7 +207,7 @@ void Server::handlePrivMsg(int fd, std::istringstream &iss)
     }
     else
     {
-        Client* receiver = nullptr;
+        Client* receiver = NULL;
         for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
         {
             if (it->second->getNickname() == target)
@@ -382,7 +382,7 @@ void Server::handleInvite(int fd, std::istringstream &iss)
     {
         sendMessage(fd, "482 " + channelName + " :You're not channel operator");
         return;
-    }   
+    }
 
     Client* target = getClientByNick(nick); //cherche la cible dans le serveur
     if (!target)
@@ -425,7 +425,7 @@ void Server::handleMode(int fd, std::istringstream &iss)
     if (std::find(members.begin(), members.end(), client) == members.end())
     {
         sendMessage(fd, "442 " + channelName + " :You're not on that channel");
-        return; 
+        return;
     }
 
     if (!ch->isAdmin(client) && !client->isOperator())
@@ -507,11 +507,11 @@ void Server::handleMode(int fd, std::istringstream &iss)
                 sendMessage(fd, "461 MODE :Not enough parameters");
                 continue;
             }
-            if (!add) 
+            if (!add)
                 limit = "";
-            
+
             ch->setMode('l', limit);
-            
+
             std::string msgPart = "l";
             if (!limit.empty())
                 msgPart += " " + limit;

@@ -7,10 +7,10 @@ Server::Server(int port, std::string password )
 {
 	_Signal = false;
 
-	std::time_t t = std::time(nullptr);
-    _creationTime = std::ctime(&t);          // récupère date/heure en string
-    if (!_creationTime.empty() && _creationTime.back() == '\n')
-    	_creationTime.pop_back();            // supprime le '\n' ajouté par ctime
+	time_t t = time(NULL);
+	_creationTime = ctime(&t);		// récupère date/heure en string
+	if (!_creationTime.empty() && _creationTime[_creationTime.length() - 1] == '\n')
+		_creationTime.erase(_creationTime.length() - 1);		// supprime le '\n' ajouté par ctime
 
 	std::cout << "Server : Constructor called" << std::endl;
 };
@@ -27,7 +27,7 @@ Server &Server::operator=(const Server &src) {
 		_port = src._port;
 		_fds = src._fds;
 		_clients = src._clients;
-		//_channels = src._channels;
+		_channels = src._channels;
 		_password = src._password;
 	}
 	return (*this);
@@ -395,7 +395,7 @@ void	Server::exec_cmd(int client_fd)
 }
 
 
-//----VALIDATION NICKNAME---- 
+//----VALIDATION NICKNAME----
 
 bool Server::isValidNickname(std::string& nickname)
 {
