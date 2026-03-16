@@ -534,3 +534,67 @@ void Server::handleMode(int fd, std::istringstream &iss)
         send(c->getFd(), msg.c_str(), msg.size(), 0);
     }
 }
+
+
+void Server::handleKick(int fd, std::istringstream &iss)
+{
+    std::string channelName, targetNick;
+    iss >> channelName >> targetNick;
+
+    if (channelName.empty() || targetNick.empty())
+    {
+        sendMessage(fd, "461 KICK :Not enough parameters (must specify channel and user)");
+        return;
+    }
+
+    if (_channels.find(channelName) == _channels.end())
+    {
+        sendMessage(fd, "403 " + channelName + " :No such channel");
+        return;
+    }
+
+    Channel* ch = _channels[channelName];
+    Client* client = _clients[fd]; // client qui fait la demande
+
+    const std::vector<Client*>& members = ch->getMembers();
+    if (std::find(members.begin(), members.end(), client) == members.end())
+    {
+        sendMessage(fd, "442 " + channelName + " :You're not on that channel");
+        return;
+    }
+
+    if (!ch->isAdmin(client) && !client->isOperator())
+    {
+        sendMessage(fd, "482 " + channelName + " :You're not channel operator");
+        return;
+    }
+
+    Client* target = getClientByNick(targetNick);  // récupérer le client à kicker
+    if (!target || std::find(members.begin(), members.end(), target) == members.end())
+    {
+        sendMessage(fd, "441 " + targetNick + " " + channelName + " :They aren't on that channel");
+        return;
+    }
+
+    std::string reason;  //pour message de kick
+    std::getline(iss, reason);
+    if (!reason.empty() && reason[0] == ':')
+        reason.erase(0, 1);
+
+    std::string kick_msg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() +
+                           " KICK " + channelName + " " + targetNick;
+    if (!reason.empty())
+        kick_msg += " :" + reason;
+    kick_msg += "\r\n";
+
+    for (std::vector<Client*>::const_iterator it = members.begin(); it != members.end(); ++it) //info à tous les membres
+    {
+        Client* c = *it;
+        send(c->getFd(), kick_msg.c_str(), kick_msg.size(), 0);
+    }
+
+    ch->removeMember(target);
+
+    if (ch->getMembers().empty()) //supp du channel si vide
+        _channels.erase(channelName);
+}

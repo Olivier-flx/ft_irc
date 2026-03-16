@@ -9,7 +9,7 @@ std::string& rtrim(std::string& s)
 	if (end != std::string::npos)
 		s.erase(end + 1);
 	else
-		s.clear(); // toute la chaîne était des espaces
+		s.erase(s.begin(), s.end());
 	return (s);
 }
 
@@ -22,7 +22,7 @@ std::string& ltrim(std::string& s)
 	if (start != std::string::npos)
 		s.erase(0, start);
 	else
-		s.clear();
+		s.erase(s.begin(), s.end());
 	return (s);
 }
 

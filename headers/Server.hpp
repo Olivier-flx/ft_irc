@@ -59,6 +59,7 @@ class Server
 		void handleMode(int fd, std::istringstream &iss);
 		void handlePart(int fd, std::istringstream &iss);
 		void handleInvite(int fd, std::istringstream &iss);
+		void handleKick(int fd, std::istringstream &iss);
 		Client* getClientByNick(const std::string& nick);
 		
 

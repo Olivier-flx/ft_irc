@@ -376,6 +376,22 @@ void	Server::exec_cmd(int client_fd)
         handleNick(client_fd, iss);
     else if (command == "USER")
         handleUser(client_fd, iss);
+	else if (command == "JOIN")
+        handleJoin(client_fd, iss);
+    else if (command == "KICK")
+        handleKick(client_fd, iss);
+    else if (command == "INVITE")
+        handleInvite(client_fd, iss);
+	else if (command == "PART")
+        handlePart(client_fd, iss);
+	else if (command == "PRIVMSG")
+        handlePrivMsg(client_fd, iss);
+    else if (command == "TOPIC")
+        handleTopic(client_fd, iss);
+    else if (command == "MODE")
+        handleMode(client_fd, iss);
+    else
+        sendMessage(client_fd, "Unknown command: " + command);
 }
 
 
