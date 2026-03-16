@@ -32,6 +32,7 @@ class Channel
 	bool		isTopicRestricted() const;
 	bool		isInviteOnly() const;
 	const std::vector<Client*>& getMembers() const;
+	const std::vector<Client*>& getAdmins() const;
 	std::string	getName() const;
 	std::string	getTopic() const;
 	std::string	getModes() const; //renvoie les modes actifs et leurs paramètres pour le MODE #channel sans paramètre.

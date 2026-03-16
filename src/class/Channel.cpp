@@ -39,9 +39,25 @@ void Channel::addAdmin(Client* c)
 
 void Channel::removeAdmin(Client* c)
 {
+	if (_members.size() <= 1)
+		return;
+
 	std::vector<Client*>::iterator it = std::find(_admins.begin(), _admins.end(), c);
 	if (it != _admins.end())
 		_admins.erase(it);
+
+	if (_admins.empty())
+	{
+		// promotion du premier membre en tant qu'admin si il n'y a plus d'admin
+		for (size_t i = 0; i < _members.size(); i++)
+		{
+			if (_members[i] != c)
+			{
+				_admins.push_back(_members[i]);
+				break;
+			}
+		}
+	}
 }
 
 
@@ -58,6 +74,12 @@ const std::vector<Client*>& Channel::getMembers() const
 {
 	return _members;
 }
+
+const std::vector<Client*>& Channel::getAdmins() const
+{
+	return _admins;
+}
+
 
 std::string Channel::getName() const
 {

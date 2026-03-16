@@ -507,7 +507,25 @@ void Server::handleMode(int fd, std::istringstream &iss)
 			if (add)
 				ch->addAdmin(target);
 			else
-				ch->removeAdmin(target);
+			{
+				if (ch->getMembers().size() == 1) // seul membre = seul admin
+				{
+					sendMessage(fd, ":ft_irc NOTICE " + client->getNickname()
+					+ " :Cannot remove admin rights: you are the only member of " + channelName);
+					continue;
+				}
+				if (ch->getAdmins().size() == 1 && ch->isAdmin(target)) // droit d'admin transmit au premier membre
+				{
+					//  transfere de droits a un membre
+					ch->removeAdmin(target); // promotion automatique faite dans removeAdmin()
+					// Notifier le nouveau admin
+					Client* newAdmin = ch->getAdmins()[0];
+					sendMessage(newAdmin->getFd(), ":ft_irc NOTICE " + newAdmin->getNickname()
+						+ " :You have been promoted to channel operator of " + channelName);
+				}
+				else
+					ch->removeAdmin(target);
+			}
 			paramModes.push_back(std::string(1, m) + " " + targetNick);
 		}
 		else if (m == 'k') // mot de passe channel
