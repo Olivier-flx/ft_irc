@@ -246,7 +246,7 @@ void	Server::acceptClient()
 		std::cerr << "Serveur plein, rejet de la connexion du FD : " << client_fd << std::endl;
 		std::string errMsg = "ERROR :Server is full\r\n";
 		sendMessage(client_fd, "ERROR :Server is full.");
-		close(client_fd); // On ferme immédiatement
+		close(client_fd);
 		return;
 	}
 
