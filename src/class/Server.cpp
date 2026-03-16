@@ -241,6 +241,15 @@ void	Server::acceptClient()
 		return;
 	}
 
+	if (_fds.size() > 1000)
+	{
+		std::cerr << "Serveur plein, rejet de la connexion du FD : " << client_fd << std::endl;
+		std::string errMsg = "ERROR :Server is full\r\n";
+		sendMessage(client_fd, "ERROR :Server is full.");
+		close(client_fd); // On ferme immédiatement
+		return;
+	}
+
 	//////write family-agnostic code, you should be using sockaddr_storage instead of sockaddr_in or sockaddr_in6 directly when possible. sockaddr_storage is large enough in size to hold both sockaddr_in and sockaddr_in6 structs.
 	//https://stackoverflow.com/questions/13157151/isnt-struct-sockadr-in-supposed-to-work-for-both-ipv4-and-ipv6
 	char client_ip[46];//max len for ipv6
@@ -364,34 +373,33 @@ void	Server::parse_cmd(int client_fd)
 
 void	Server::exec_cmd(int client_fd)
 {
-	//std::cout << "Depuis exec_cmd\n";
-    std::string cmd = _clients[client_fd]->getCmd();
-    std::istringstream iss(cmd);
-    std::string command;
-    iss >> command;
+	std::string cmd = _clients[client_fd]->getCmd();
+	std::istringstream iss(cmd);
+	std::string command;
+	iss >> command;
 
-    if (command == "PASS")
-        handlePass(client_fd, iss);
-    else if (command == "NICK")
-        handleNick(client_fd, iss);
-    else if (command == "USER")
-        handleUser(client_fd, iss);
+	if (command == "PASS")
+		handlePass(client_fd, iss);
+	else if (command == "NICK")
+		handleNick(client_fd, iss);
+	else if (command == "USER")
+		handleUser(client_fd, iss);
 	else if (command == "JOIN")
-        handleJoin(client_fd, iss);
-    else if (command == "KICK")
-        handleKick(client_fd, iss);
-    else if (command == "INVITE")
-        handleInvite(client_fd, iss);
+		handleJoin(client_fd, iss);
+	else if (command == "KICK")
+		handleKick(client_fd, iss);
+	else if (command == "INVITE")
+		handleInvite(client_fd, iss);
 	else if (command == "PART")
-        handlePart(client_fd, iss);
+		handlePart(client_fd, iss);
 	else if (command == "PRIVMSG")
-        handlePrivMsg(client_fd, iss);
-    else if (command == "TOPIC")
-        handleTopic(client_fd, iss);
-    else if (command == "MODE")
-        handleMode(client_fd, iss);
-    else
-        sendMessage(client_fd, "Unknown command: " + command);
+		handlePrivMsg(client_fd, iss);
+	else if (command == "TOPIC")
+		handleTopic(client_fd, iss);
+	else if (command == "MODE")
+		handleMode(client_fd, iss);
+	else
+		sendMessage(client_fd, "Unknown command: " + command);
 }
 
 
@@ -400,7 +408,7 @@ void	Server::exec_cmd(int client_fd)
 bool Server::isValidNickname(std::string& nickname)
 {
 	if (nickname.empty())
-        return (false);
+		return (false);
 	if((nickname[0] == '&' || nickname[0] == '#' || nickname[0] == ':')) //on exclue le cas des channels
 		return (false);
 	for(size_t i = 0; i < nickname.size(); i++)
@@ -413,15 +421,15 @@ bool Server::isValidNickname(std::string& nickname)
 
 bool Server::nicknameUsed(std::string& nickname)
 {
-    std::string lowerNick = nickname;
-    std::transform(lowerNick.begin(), lowerNick.end(), lowerNick.begin(), ::tolower); //convertit du debut a la fin et stocke dès le debut de la string
+	std::string lowerNick = nickname;
+	std::transform(lowerNick.begin(), lowerNick.end(), lowerNick.begin(), ::tolower); //convertit du debut a la fin et stocke dès le debut de la string
 
-    for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-    {
-        std::string existing = it->second->getNickname(); //commence a second (pointeur vers objet Client) car first est le fd du client
-        std::transform(existing.begin(), existing.end(), existing.begin(), ::tolower);
-        if (existing == lowerNick)
-            return (true);
-    }
-    return (false);
+	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		std::string existing = it->second->getNickname(); //commence a second (pointeur vers objet Client) car first est le fd du client
+		std::transform(existing.begin(), existing.end(), existing.begin(), ::tolower);
+		if (existing == lowerNick)
+			return (true);
+	}
+	return (false);
 }
