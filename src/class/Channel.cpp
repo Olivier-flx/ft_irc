@@ -1,0 +1,132 @@
+#include "Channel.hpp"
+#include "Client.hpp"
+
+Channel::Channel(std::string name): _name(name), _topic(""), _topicRestricted(false), _inviteOnly(false){}
+
+void Channel::addMember(Client* client)
+{
+    if (!client)
+        return;
+
+    if (std::find(_members.begin(), _members.end(), client) != _members.end())
+        return;
+
+    _members.push_back(client);
+    if (_members.size() == 1) // Si premier membre, devient admin automatiquement
+        _admins.push_back(client); 
+}
+
+
+void Channel::removeMember(Client* client)
+{
+    if (!client)
+        return;
+
+    _members.erase(std::remove(_members.begin(), _members.end(), client),_members.end()); //on parcourt le vecteur, retire le client, puis on efface l'espace a la fin laissé suite à ce retrait
+
+    _admins.erase(std::remove(_admins.begin(), _admins.end(), client),_admins.end());
+    if (_admins.empty() && !_members.empty())
+        _admins.push_back(_members[0]); //si plus d'admin, on donne admin au premier
+}
+
+
+//methodes pour MODE
+void Channel::addAdmin(Client* c)
+{
+    if (std::find(_admins.begin(), _admins.end(), c) == _admins.end())
+        _admins.push_back(c);
+}
+
+void Channel::removeAdmin(Client* c)
+{
+    std::vector<Client*>::iterator it = std::find(_admins.begin(), _admins.end(), c);
+    if (it != _admins.end())
+        _admins.erase(it);
+}
+
+
+//getters
+bool Channel::isAdmin(Client* client) const
+{
+    if (!client)
+        return (false);
+    return (std::find(_admins.begin(), _admins.end(), client) != _admins.end());
+}
+
+
+const std::vector<Client*>& Channel::getMembers() const
+{
+    return _members;
+}
+
+
+std::string Channel::getTopic() const
+{
+    return _topic;
+}
+
+bool Channel::isTopicRestricted() const
+{
+    return _topicRestricted;
+}
+
+bool Channel::isInviteOnly() const
+{
+    return _inviteOnly;
+}
+
+std::string Channel::getModes() const 
+{
+    std::string res;
+    if (_topicRestricted) 
+        res += "t";
+    if (_inviteOnly) 
+        res += "i";
+    return (res);
+}
+
+//setters
+void Channel::setTopic(const std::string &topic)
+{
+    _topic = topic;
+}
+
+void Channel::setInviteOnly(bool value)
+{
+    _inviteOnly = value;
+}
+
+void Channel::setTopicRestriction(bool value)
+{
+    _topicRestricted = value;
+}
+
+
+void Channel::setMode(char mode, const std::string &param)
+{
+    if (mode == 'k') // mot de passe
+        _key = param;
+
+    else if (mode == 'l') // limite de clients
+    {
+        if (param.empty())
+            _limit = 0;
+
+        else
+        {
+            std::stringstream ss(param); //crée ss avec contenu de param(permet de lire et ecrire dans le flux)
+            
+            int value = 0;
+            ss >> value; //conversion en int si input valide
+
+            if (ss.fail() || !ss.eof() || value < 0) // checke si conversion a échoué, s'il reste des caractères apres l entier ou si neg
+            {
+                _limit = 0;
+            }
+            else
+            {
+                _limit = value;
+            }
+        }
+    }
+}

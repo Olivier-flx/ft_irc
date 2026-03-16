@@ -1,15 +1,17 @@
 #include "ft_irc.hpp"
 #include "Server.hpp"
 
-Server::Server( void ){
-	std::cout << "Server : Default Constructor called" << std::endl;
-};
-
 Server::Server(int port, std::string password )
 				:	_port(port),
 					_password (password)
 {
 	_Signal = false;
+
+	std::time_t t = std::time(nullptr);
+    _creationTime = std::ctime(&t);          // récupère date/heure en string
+    if (!_creationTime.empty() && _creationTime.back() == '\n')
+    	_creationTime.pop_back();            // supprime le '\n' ajouté par ctime
+
 	std::cout << "Server : Constructor called" << std::endl;
 };
 
@@ -49,6 +51,7 @@ Server::~Server()
 	std::cout << "Server : Destructor called" << std::endl;
 };
 
+const std::string& Server::getCreationTime() const { return _creationTime; }
 
 bool Server::_Signal = false; //-> initialize the static boolean
 
@@ -361,7 +364,64 @@ void	Server::parse_cmd(int client_fd)
 
 void	Server::exec_cmd(int client_fd)
 {
-	(void) client_fd;
 	//std::cout << "Depuis exec_cmd\n";
+    std::string cmd = _clients[client_fd]->getCmd();
+    std::istringstream iss(cmd);
+    std::string command;
+    iss >> command;
+
+    if (command == "PASS")
+        handlePass(client_fd, iss);
+    else if (command == "NICK")
+        handleNick(client_fd, iss);
+    else if (command == "USER")
+        handleUser(client_fd, iss);
+	else if (command == "JOIN")
+        handleJoin(client_fd, iss);
+    else if (command == "KICK")
+        handleKick(client_fd, iss);
+    else if (command == "INVITE")
+        handleInvite(client_fd, iss);
+	else if (command == "PART")
+        handlePart(client_fd, iss);
+	else if (command == "PRIVMSG")
+        handlePrivMsg(client_fd, iss);
+    else if (command == "TOPIC")
+        handleTopic(client_fd, iss);
+    else if (command == "MODE")
+        handleMode(client_fd, iss);
+    else
+        sendMessage(client_fd, "Unknown command: " + command);
 }
 
+
+//----VALIDATION NICKNAME---- 
+
+bool Server::isValidNickname(std::string& nickname)
+{
+	if (nickname.empty())
+        return (false);
+	if((nickname[0] == '&' || nickname[0] == '#' || nickname[0] == ':')) //on exclue le cas des channels
+		return (false);
+	for(size_t i = 0; i < nickname.size(); i++)
+	{
+		if(!std::isalnum(nickname[i]) && nickname[i] != '_') //a-z ou 0-9
+			return (false);
+	}
+	return (true);
+}
+
+bool Server::nicknameUsed(std::string& nickname)
+{
+    std::string lowerNick = nickname;
+    std::transform(lowerNick.begin(), lowerNick.end(), lowerNick.begin(), ::tolower); //convertit du debut a la fin et stocke dès le debut de la string
+
+    for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+    {
+        std::string existing = it->second->getNickname(); //commence a second (pointeur vers objet Client) car first est le fd du client
+        std::transform(existing.begin(), existing.end(), existing.begin(), ::tolower);
+        if (existing == lowerNick)
+            return (true);
+    }
+    return (false);
+}

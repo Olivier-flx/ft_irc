@@ -14,8 +14,9 @@
 #include <poll.h> //struct pollfd{}
 #include <sys/stat.h> //?
 #include <fcntl.h> //for fcntl()
+#include <algorithm> //find(); remove(); etc...
 
-
+#include <sstream> //isstream
 #include <cstdio> //perror printf
 #include <cstring> //strerror
 #include <unistd.h> // for close()

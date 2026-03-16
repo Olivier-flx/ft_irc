@@ -10,8 +10,10 @@ FLAGS = $(C_FLAGS) $(DEPS_FLAGS)
 
 BUILD_DIR = build
 
-CPP_CLASS = class/client.cpp \
-			class/server.cpp
+CPP_CLASS = class/Client.cpp \
+			class/Server.cpp \
+			class/Channel.cpp \
+			class/server_commands.cpp \
 
 CPP_FILES = verifs/check_args.cpp \
 			utils/trim.cpp
@@ -23,7 +25,8 @@ SRC = main.cpp \
 
 HPP_FILES = ft_irc.hpp \
 			Client.hpp \
-			Server.hpp
+			Server.hpp \
+			Channel.hpp \
 
 
 HEADERS = $(addprefix headers/, $(HPP_FILES))
