@@ -42,26 +42,28 @@ class Server
 		static void SignalHandler(int signum); // signal handler
 
 		//Authentification
-		bool nicknameUsed(std::string& nickname);
-		bool isValidNickname(std::string& nickname);
+		bool	nicknameUsed(std::string& nickname);
+		bool	isValidNickname(std::string& nickname);
 
-		void handlePass(int fd, std::istringstream &iss);
-		void handleNick(int fd, std::istringstream &iss);
-		void handleUser(int fd, std::istringstream &iss);
-		void tryRegister(int fd);
-		const std::string& getCreationTime() const;
-		void sendMessage(int fd, const std::string &msg);
+		void	handlePass(int fd, std::istringstream &iss);
+		void	handleNick(int fd, std::istringstream &iss);
+		void	handleUser(int fd, std::istringstream &iss);
+		void	tryRegister(int fd);
+		const	std::string& getCreationTime() const;
+		void	sendMessage(int fd, const std::string &msg);
 
 		//Commands
-		void handleJoin(int fd, std::istringstream &iss);
-		void handlePrivMsg(int fd, std::istringstream &iss);
-		void handleTopic(int fd, std::istringstream &iss);
-		void handleMode(int fd, std::istringstream &iss);
-		void handlePart(int fd, std::istringstream &iss);
-		void handleInvite(int fd, std::istringstream &iss);
-		void handleKick(int fd, std::istringstream &iss);
-		Client* getClientByNick(const std::string& nick);
-		
+		void	handleJoin(int fd, std::istringstream &iss);
+		bool	cannotJoinChannel(Channel *ch, Client *client, const std::string &key);
+
+		void	handlePrivMsg(int fd, std::istringstream &iss);
+		void	handleTopic(int fd, std::istringstream &iss);
+		void	handleMode(int fd, std::istringstream &iss);
+		void	handlePart(int fd, std::istringstream &iss);
+		void	handleInvite(int fd, std::istringstream &iss);
+		void	handleKick(int fd, std::istringstream &iss);
+		Client*	getClientByNick(const std::string& nick);
+
 
 };
 

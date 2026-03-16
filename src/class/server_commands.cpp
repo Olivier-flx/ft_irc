@@ -110,14 +110,44 @@ void Server::sendMessage(int fd, const std::string &msg)
 
 //commandes channel
 
+bool	Server::cannotJoinChannel(Channel *ch, Client *client, const std::string &key)
+{
+	// Vérification mode +i (invite only)
+	if (ch->isInviteOnly() && !ch->isInvited(client))
+	{
+		sendMessage(client->getFd(), "473 " + ch->getName() + " :Cannot join channel (+i)");
+		return (true);
+	}
+	// Vérification mode +k (clé)
+	if (!ch->getKey().empty() && key != ch->getKey())
+	{
+		sendMessage(client->getFd(), "475 " + ch->getName() + " :Cannot join channel (+k)");
+		return (true);
+	}
+	// Vérification mode +l (limite)
+	if (ch->getLimit() > 0 && (int) ch->getMembers().size()  >= ch->getLimit())
+	{
+		sendMessage(client->getFd(), "471 " + ch->getName() + " :Cannot join channel (+l)");
+		return (true);
+	}
+	return (false);
+}
+
 void Server::handleJoin(int fd, std::istringstream &iss)
 {
 	std::string channelName;
-	iss >> channelName; //recuperation du 1er arg après JOIN
+	std::string key;
+	iss >> channelName;  //recuperation du 1er arg après JOIN
+	iss >> key; // recuperation du mot de passe
 
 	if (channelName.empty())
 	{
 		sendMessage(fd, "461 JOIN :Not enough parameters");
+		return;
+	}
+	if (channelName[0] != '#' && channelName[0] != '&')
+	{
+		sendMessage(fd, "476 " + channelName + " :Bad channel mask");
 		return;
 	}
 
@@ -128,12 +158,13 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 	Client* client = _clients[fd]; //et le client qui fait JOIN
 
 	std::vector<Client*> members = ch->getMembers();
-
 	if (std::find(members.begin(), members.end(), client) != members.end())
 	{
 		sendMessage(fd, "443 " + client->getNickname() + " " + channelName + " :is already on channel");
 		return;
 	}
+	if (cannotJoinChannel(ch, client, key))
+		return;
 
 	ch->addMember(client);
 
