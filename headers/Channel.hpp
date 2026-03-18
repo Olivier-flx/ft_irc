@@ -24,7 +24,8 @@ class Channel
 	void	addMember(Client *client);
 	void	removeMember(Client *client);
 	bool	isInvited(Client *client);
-	bool	addInvited(Client *client);
+	void	addInvited(Client *client);
+	void	removeInvited(Client *client);
 	void	addAdmin(Client *c);
 	void	removeAdmin(Client *c); // mode o
 
