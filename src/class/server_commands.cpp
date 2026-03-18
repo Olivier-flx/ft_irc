@@ -532,7 +532,6 @@ void Server::handleMode(int fd, std::istringstream &iss)
 				else
 					ch->removeAdmin(target);
 			}
-
 			modeStr += "o";
 			paramValue.push_back(targetNick);
 		}
@@ -573,9 +572,7 @@ void Server::handleMode(int fd, std::istringstream &iss)
 			modeStr += "l";
 		}
 		else
-		{
 			sendMessage(fd, "472 " + std::string(1, m) + " :Unknown mode char");
-		}
 	}
 
 	std::string msg = ":" + client->getNickname()
@@ -588,12 +585,8 @@ void Server::handleMode(int fd, std::istringstream &iss)
 	msg += "\r\n";
 
 	for (std::vector<Client*>::const_iterator it = ch->getMembers().begin();
-		it != ch->getMembers().end();
-		++it) //envoi à tous les membres
-	{
-		Client* c = *it;
-		send(c->getFd(), msg.c_str(), msg.size(), 0);
-	}
+			it != ch->getMembers().end(); ++it) //envoi à tous les membres
+		send((*it)->getFd(), msg.c_str(), msg.size(), 0);
 }
 
 
