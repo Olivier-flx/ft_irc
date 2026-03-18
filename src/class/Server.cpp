@@ -402,6 +402,8 @@ void	Server::exec_cmd(int client_fd)
 		handleMode(client_fd, iss);
 	else if (command == "PING")
 		handlePing(client_fd, iss);
+	else if (command == "CAP" || command == "WHOIS")
+		; // ignore (irssi stuff)
 	else
 		sendMessage(client_fd, "Unknown command: " + command);
 }

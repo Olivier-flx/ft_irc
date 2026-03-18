@@ -94,10 +94,10 @@ void Server::tryRegister(int fd)
 	{
 		client->setRegistered(true);
 
-		sendMessage(fd, ":" + _serverName + "001 " + client->getNickname() + " :Welcome to " +_serverName + "Network");
-		sendMessage(fd, ":" + _serverName + "002 " + client->getNickname() + " :Your host is " +_serverName);
-		sendMessage(fd, ":" + _serverName + "003 " + client->getNickname() + " :This server was created " + getCreationTime());
-		sendMessage(fd, ":" + _serverName + "004 " + client->getNickname() + _serverName + "0.1 -i -t -k -l -o"); //modes dispos pour les channels
+		sendMessage(fd, ":" + _serverName + " 001 " + client->getNickname() + " :Welcome to " +_serverName + " Network");
+		sendMessage(fd, ":" + _serverName + " 002 " + client->getNickname() + " :Your host is " +_serverName);
+		sendMessage(fd, ":" + _serverName + " 003 " + client->getNickname() + " :This server was created " + getCreationTime());
+		sendMessage(fd, ":" + _serverName + " 004 " + client->getNickname() + " " + _serverName + " 0.1 -i -t -k -l -o"); //modes dispos pour les channels
 	}
 }
 
@@ -140,6 +140,7 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 	iss >> channelName;  //recuperation du 1er arg après JOIN
 	iss >> key; // recuperation du mot de passe
 
+	std::cout << "DEBUG : channel joined name = '" + channelName + "'" << std::endl;
 	if (channelName.empty())
 	{
 		sendMessage(fd, "461 JOIN :Not enough parameters");
@@ -448,6 +449,9 @@ void Server::handleMode(int fd, std::istringstream &iss)
 	std::string channelName;
 	iss >> channelName;
 
+	if (channelName.empty() || (channelName[0] != '#' && channelName[0] != '&'))
+		return; //mode utilisateur a la connection, donc ignore
+
 	if (_channels.find(channelName) == _channels.end())
 	{
 		sendMessage(fd, "403 " + channelName + " :No such channel");
@@ -659,5 +663,6 @@ void Server::handlePing(int fd, std::istringstream &iss)
 	iss >> token;
 	if (token[0] == ':')
 		token.erase(0, 1);
-	sendMessage(fd, ":" + _serverName + " PONG " + _serverName + ":" + token);
+	sendMessage(fd, ":" + _serverName + " PONG " + _serverName + " :" + token);
+	std::cout << ":" + _serverName + " PONG " + _serverName + " :" + token << std::endl;  // DEBUG
 }

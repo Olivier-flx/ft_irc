@@ -13,7 +13,7 @@ static int	check_ac(int ac)
 static int	check_port_is_digit (char *port)
 {
 	int i = 0;
-	while (port[i]) 
+	while (port[i])
 	{
 		if (std::isspace(static_cast<unsigned char>(port[i])))
 		{
@@ -44,7 +44,7 @@ static int	check_port_is_inrange(char *port, int  &port_int)
 		return EXIT_FAILURE;
 
 	int range_error = (errno == ERANGE);
-	if (range_error) 
+	if (range_error)
 	{
 		std::cout << "Err: port Range error occurred.\n";
 		return EXIT_FAILURE;
@@ -67,10 +67,10 @@ static int invalid_char_in_password(char *pw)
 			return EXIT_FAILURE;
 		}
 
-		if (pw[i] == '\'' || pw[i] == ';' || pw[i] == '\\' || pw[i] == '`' || pw[i] == '"') 
+		if (pw[i] == '\'' || pw[i] == ';' || pw[i] == '\\' || pw[i] == '`' || pw[i] == '"')
 		{
-   			 std::cout << "Err: invalid password : unauthorised character in password (' , ; , \\ , ` , \")" << std::endl;
-    		return EXIT_FAILURE;
+			 std::cout << "Err: invalid password : unauthorised character in password (' , ; , \\ , ` , \")" << std::endl;
+			return EXIT_FAILURE;
 		}
 		if (pw[i] < 21 || pw[i] > 126){
 			std::cout << "Err: invalid password : unvalid character in password" << std::endl;
@@ -83,18 +83,18 @@ static int invalid_char_in_password(char *pw)
 
 bool	arg_ok(int ac, char **argv, int &port_int)
 {
-    if (check_ac(ac) != 0)
-        return (false);
+	if (check_ac(ac) != 0)
+		return (false);
 
-    if (check_port_is_digit(argv[1]) != 0)
-        return (false);
+	if (check_port_is_digit(argv[1]) != 0)
+		return (false);
 
-    if (check_port_is_inrange(argv[1], port_int) != 0)
-        return (false);
+	if (check_port_is_inrange(argv[1], port_int) != 0)
+		return (false);
 
-    if (invalid_char_in_password(argv[2]) != 0)
-        return (false);
+	if (invalid_char_in_password(argv[2]) != 0)
+		return (false);
 
-    return (true);
+	return (true);
 }
 

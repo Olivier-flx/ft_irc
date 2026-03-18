@@ -153,3 +153,54 @@ Utilise `std::stringstream` pour convertir int <-> string.
 3. Wireshark :
    Si tu ne comprends pas pourquoi ton client bug, regarde les paquets
    qui transitent sur la boucle locale (Loopback).
+
+
+
+
+   ||
+   ||
+   \/
+
+=====================================
+                test irssi
+=====================================
+
+lancer serveur
+./ircserv 6667 monpassword
+
+---
+
+## Se connecter au serveur
+Dans irssi, toutes les commandes commencent par `/` :
+```
+/connect 127.0.0.1 6667 monpassword
+```
+
+---
+
+## Vérifier la connexion
+Tu devrais voir les messages de bienvenue :
+```
+001 Welcome to ft_irc Network
+002 Your host is ft_irc
+003 This server was created ...
+```
+
+---
+
+## Tester les commandes de base
+```
+/nick monpseudo
+/join #test
+/msg #test hello world
+/topic #test mon topic
+```
+
+---
+
+## Tester les modes
+```
+/mode #test +i
+/mode #test +k secret
+/mode #test +l 10
+/mode #test +o quelquun
