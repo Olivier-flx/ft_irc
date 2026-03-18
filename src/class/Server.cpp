@@ -398,6 +398,8 @@ void	Server::exec_cmd(int client_fd)
 		handleTopic(client_fd, iss);
 	else if (command == "MODE")
 		handleMode(client_fd, iss);
+	else if (command == "PING")
+		handlePing(client_fd, iss);
 	else
 		sendMessage(client_fd, "Unknown command: " + command);
 }

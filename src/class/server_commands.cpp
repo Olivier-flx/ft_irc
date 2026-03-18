@@ -652,3 +652,12 @@ void Server::handleKick(int fd, std::istringstream &iss)
 	if (ch->getMembers().empty()) //supp du channel si vide
 		_channels.erase(channelName);
 }
+
+void Server::handlePing(int fd, std::istringstream &iss)
+{
+	std::string token;
+	iss >> token;
+	if (token[0] == ':')
+		token.erase(0, 1);
+	sendMessage(fd, ":ft_irc PONG ft_irc :" + token);
+}
