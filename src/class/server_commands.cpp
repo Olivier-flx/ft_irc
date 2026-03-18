@@ -184,6 +184,11 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 		std::string topic_msg = ":ft_irc 332 " + client->getNickname() + " " + channelName + " :" + ch->getTopic();
 		sendMessage(fd, topic_msg); //msg envoyé uniquement à celui qui rejoint
 	}
+
+	// TODO
+	// RPL_NAMREPLY 353 + 366
+	//353 ton_nick = #channel :@admin1 user2 user3
+	//366 ton_nick #channel :End of /NAMES list
 }
 
 
@@ -438,9 +443,6 @@ void Server::handleInvite(int fd, std::istringstream &iss)
 	sendMessage(fd, "341 " + client->getNickname() + " " + nick + " " + channelName); //confirmation d'envoi au client qui a fait la demande
 }
 
-
-
-
 void Server::handleMode(int fd, std::istringstream &iss)
 {
 	std::string channelName;
@@ -478,20 +480,21 @@ void Server::handleMode(int fd, std::istringstream &iss)
 	}
 
 	bool add = true;
-	std::vector<std::string> paramModes; // pour construire le message complet
+	std::string modeStr; // pour recuperer les lettres et les signes + ou -
+	std::vector<std::string> paramValue; // pour recuperer les parametres de K, o, ou l
 
 	for (size_t i = 0; i < mode.size(); i++)
 	{
 		char m = mode[i];
 
 		if (m == '+')
-			add = true;
+			add = true, modeStr += "+";
 		else if (m == '-')
-			add = false;
+			add = false, modeStr += "-";
 		else if (m == 't')
-			ch->setTopicRestriction(add), paramModes.push_back(std::string(1, m));
+			ch->setTopicRestriction(add), modeStr += "t";
 		else if (m == 'i')
-			ch->setInviteOnly(add), paramModes.push_back(std::string(1, m));
+			ch->setInviteOnly(add), modeStr += "i";
 		else if (m == 'o') // donner/retirer droits opérateur
 		{
 			std::string targetNick;
@@ -529,7 +532,9 @@ void Server::handleMode(int fd, std::istringstream &iss)
 				else
 					ch->removeAdmin(target);
 			}
-			paramModes.push_back(std::string(1, m) + " " + targetNick);
+
+			modeStr += "o";
+			paramValue.push_back(targetNick);
 		}
 		else if (m == 'k') // mot de passe channel
 		{
@@ -545,10 +550,9 @@ void Server::handleMode(int fd, std::istringstream &iss)
 
 			ch->setMode('k', key);
 
-			std::string msgPart = "k";
 			if (!key.empty())
-				msgPart += " " + key;
-			paramModes.push_back(msgPart);
+				paramValue.push_back(key);
+			modeStr += "k";
 		}
 		else if (m == 'l') // limite de clients
 		{
@@ -564,10 +568,9 @@ void Server::handleMode(int fd, std::istringstream &iss)
 
 			ch->setMode('l', limit);
 
-			std::string msgPart = "l";
 			if (!limit.empty())
-				msgPart += " " + limit;
-			paramModes.push_back(msgPart);
+				paramValue.push_back(limit);
+			modeStr += "l";
 		}
 		else
 		{
@@ -575,12 +578,18 @@ void Server::handleMode(int fd, std::istringstream &iss)
 		}
 	}
 
-	std::string msg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " MODE " + channelName;
-	for (size_t i = 0; i < paramModes.size(); i++)
-		msg += " " + paramModes[i];
+	std::string msg = ":" + client->getNickname()
+					+ "!" + client->getUsername()
+					+ "@" + client->getHostname()
+					+ " MODE " + channelName
+					+ " " + modeStr;
+	for (size_t i = 0; i < paramValue.size(); i++)
+		msg += " " + paramValue[i];
 	msg += "\r\n";
 
-	for (std::vector<Client*>::const_iterator it = ch->getMembers().begin(); it != ch->getMembers().end(); ++it) //envoi à tous les membres
+	for (std::vector<Client*>::const_iterator it = ch->getMembers().begin();
+		it != ch->getMembers().end();
+		++it) //envoi à tous les membres
 	{
 		Client* c = *it;
 		send(c->getFd(), msg.c_str(), msg.size(), 0);
