@@ -29,6 +29,26 @@ void Channel::removeMember(Client* client)
 		_admins.push_back(_members[0]); //si plus d'admin, on donne admin au premier
 }
 
+bool	Channel::isInvited(Client *client)
+{
+	if(std::find(_invitedList.begin(), _invitedList.end(), client) == _invitedList.end())
+		return false;
+	return true;
+}
+
+void	Channel::addInvited(Client *client)
+{
+	if (std::find(_invitedList.begin(), _invitedList.end(), client) == _invitedList.end())
+		_invitedList.push_back(client);
+}
+
+void	Channel::removeInvited(Client *client)
+{
+	std::vector<Client*>::iterator it = std::find(_invitedList.begin(), _invitedList.end(), client);
+	if (it != _invitedList.end())
+		_invitedList.erase(it);
+}
+
 
 //methodes pour MODE
 void Channel::addAdmin(Client* c)

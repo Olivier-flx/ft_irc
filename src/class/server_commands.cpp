@@ -167,6 +167,7 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 		return;
 
 	ch->addMember(client);
+	ch->removeInvited(client);
 
 	members = ch->getMembers();
 	std::string join_msg = ":" + client->getNickname() + " JOIN " + channelName + "\r\n";
@@ -428,11 +429,13 @@ void Server::handleInvite(int fd, std::istringstream &iss)
 		return;
 	}
 
+	ch->addInvited(target);
+
 	std::string prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname();
 
 	sendMessage(target->getFd(), prefix + " INVITE " + nick + " " + channelName); //envoi du msg d'invit à l'invité
 
-	sendMessage(fd, "341 " + client->getNickname() + " " + nick + " " + channelName); //confirmation d'emvoi au client qui a fait la demande
+	sendMessage(fd, "341 " + client->getNickname() + " " + nick + " " + channelName); //confirmation d'envoi au client qui a fait la demande
 }
 
 
