@@ -12,6 +12,7 @@ class Server
 		int	_serverSocket;				// La socket d'écoute
 		int	_port;
 		std::string _password;				// Le mdp du serveur
+		static const std::string _serverName;
 		static bool _Signal; // for signalhandle()
 		std::vector<pollfd> _fds;			// Pour poll()
 		std::map<int, Client*> _clients;	// FD -> Pointeur vers Client

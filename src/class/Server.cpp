@@ -1,6 +1,8 @@
 #include "ft_irc.hpp"
 #include "Server.hpp"
 
+const std::string Server::_serverName = "ft_irc";
+
 Server::Server(int port, std::string password )
 				:	_port(port),
 					_password (password)

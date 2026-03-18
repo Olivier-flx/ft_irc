@@ -94,10 +94,10 @@ void Server::tryRegister(int fd)
 	{
 		client->setRegistered(true);
 
-		sendMessage(fd, ":ft_irc 001 " + client->getNickname() + " :Welcome to ft_irc Network");
-		sendMessage(fd, ":ft_irc 002 " + client->getNickname() + " :Your host is ft_irc");
-		sendMessage(fd, ":ft_irc 003 " + client->getNickname() + " :This server was created " + getCreationTime());
-		sendMessage(fd, ":ft_irc 004 " + client->getNickname() + " ft_irc 0.1 -i -t -k -l -o"); //modes dispos pour les channels
+		sendMessage(fd, ":" + _serverName + "001 " + client->getNickname() + " :Welcome to " +_serverName + "Network");
+		sendMessage(fd, ":" + _serverName + "002 " + client->getNickname() + " :Your host is " +_serverName);
+		sendMessage(fd, ":" + _serverName + "003 " + client->getNickname() + " :This server was created " + getCreationTime());
+		sendMessage(fd, ":" + _serverName + "004 " + client->getNickname() + _serverName + "0.1 -i -t -k -l -o"); //modes dispos pour les channels
 	}
 }
 
@@ -181,7 +181,7 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 
 	if (!ch->getTopic().empty())
 	{
-		std::string topic_msg = ":ft_irc 332 " + client->getNickname() + " " + channelName + " :" + ch->getTopic();
+		std::string topic_msg = ":" + _serverName + " 332 " + client->getNickname() + " " + channelName + " :" + ch->getTopic();
 		sendMessage(fd, topic_msg); //msg envoyé uniquement à celui qui rejoint
 	}
 
@@ -516,7 +516,7 @@ void Server::handleMode(int fd, std::istringstream &iss)
 			{
 				if (ch->getMembers().size() == 1) // seul membre = seul admin
 				{
-					sendMessage(fd, ":ft_irc NOTICE " + client->getNickname()
+					sendMessage(fd, ":" + _serverName + " NOTICE " + client->getNickname()
 					+ " :Cannot remove admin rights: you are the only member of " + channelName);
 					continue;
 				}
@@ -526,7 +526,7 @@ void Server::handleMode(int fd, std::istringstream &iss)
 					ch->removeAdmin(target); // promotion automatique faite dans removeAdmin()
 					// Notifier le nouveau admin
 					Client* newAdmin = ch->getAdmins()[0];
-					sendMessage(newAdmin->getFd(), ":ft_irc NOTICE " + newAdmin->getNickname()
+					sendMessage(newAdmin->getFd(), ":" + _serverName + " NOTICE " + newAdmin->getNickname()
 						+ " :You have been promoted to channel operator of " + channelName);
 				}
 				else
@@ -659,5 +659,5 @@ void Server::handlePing(int fd, std::istringstream &iss)
 	iss >> token;
 	if (token[0] == ':')
 		token.erase(0, 1);
-	sendMessage(fd, ":ft_irc PONG ft_irc :" + token);
+	sendMessage(fd, ":" + _serverName + " PONG " + _serverName + ":" + token);
 }
