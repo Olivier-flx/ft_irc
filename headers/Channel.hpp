@@ -33,6 +33,7 @@ class Channel
 	bool		isAdmin(Client* client) const;
 	bool		isTopicRestricted() const;
 	bool		isInviteOnly() const;
+	bool 		isEmpty() const;
 	const std::vector<Client*>& getMembers() const;
 	const std::vector<Client*>& getAdmins() const;
 	std::string	getName() const;

@@ -334,34 +334,43 @@ bool	Server::get_line_msg_to_cmd(int client_fd)
 
 void	Server::client_disconnection(size_t i)
 {
-	int	fd_to_disconnect = _fds[i].fd;
-	if(_clients.count(fd_to_disconnect))
-	{
-		delete _clients[fd_to_disconnect];
-		_clients.erase(fd_to_disconnect);
-	}
-	close(fd_to_disconnect);
-	_fds.erase(_fds.begin() + i);
+	int fd = _fds[i].fd;
+
+    if (!_clients.count(fd))
+        return;
+
+	Client* client = _clients[fd];
+    if (!client) 
+		return;
+
+	std::map<std::string, Channel*>::iterator it = _channels.begin();
+    while (it != _channels.end())
+    {
+        Channel* chan = it->second;
+        chan->removeMember(client);
+        chan->removeInvited(client); 
+
+        if (chan->isEmpty())
+        {
+			delete chan;
+   			it = _channels.erase(it);
+		}
+		else
+        {
+            it++;
+        }
+    }
+
+    _clients.erase(fd);
+    delete client;
+
+	close(fd);
+    _fds.erase(_fds.begin() + i); //retire du poll
+
+    std::cout << "Client fd " << fd << " disconnected\n";
 }
 
-/**
- * KICK - Eject a client from the channel
- * 		format : KICK <channel> <user> [<comment>]
- * INVITE - Invite a client to a channel
- * 		format : INVITE <nickname> <channel>
- * TOPIC - Change or view the channel topic
- * 		format : TOPIC <channel> [<topic>]
- * MODE - Change the channel’s mode:
- * 		· i: Set/remove Invite-only channel
- * 		· t: Set/remove the restrictions of the TOPIC command to channel operators
- * 		· k: Set/remove the channel key (password)
- * 		· o: Give/take channel operator privilege
- * 		· l: Set/remove the user limit to channel
- * 		format : MODE <channel> <modes> [<params>]
- * 			exemples : MODE #channel +it
- * 						MODE #42 -t
- * 						MODE #42 +k secret123
- */
+
 void	Server::parse_cmd(int client_fd)
 {
 	std::string cmd = _clients[client_fd]->getCmd();
@@ -413,14 +422,19 @@ void	Server::exec_cmd(int client_fd)
 
 bool Server::isValidNickname(std::string& nickname)
 {
-	if (nickname.empty())
+	if (nickname.empty() || nickname.size() > 9) //on se base sur RFC d'IRC
 		return (false);
-	if((nickname[0] == '&' || nickname[0] == '#' || nickname[0] == ':')) //on exclue le cas des channels
-		return (false);
+	
+	if (!std::isalpha(nickname[0]) && nickname[0] != '_')
+        return (false);
+
 	for(size_t i = 0; i < nickname.size(); i++)
 	{
 		if(!std::isalnum(nickname[i]) && nickname[i] != '_') //a-z ou 0-9
 			return (false);
+		
+		if (nickname[i] == '#' || nickname[i] == '&' || nickname[i] == ':')
+            return (false);
 	}
 	return (true);
 }

@@ -23,8 +23,8 @@ void Channel::removeMember(Client* client)
 		return;
 
 	_members.erase(std::remove(_members.begin(), _members.end(), client),_members.end()); //on parcourt le vecteur, retire le client, puis on efface l'espace a la fin laissé suite à ce retrait
-
 	_admins.erase(std::remove(_admins.begin(), _admins.end(), client),_admins.end());
+
 	if (_admins.empty() && !_members.empty())
 		_admins.push_back(_members[0]); //si plus d'admin, on donne admin au premier
 }
@@ -87,6 +87,11 @@ bool Channel::isAdmin(Client* client) const
 	if (!client)
 		return (false);
 	return (std::find(_admins.begin(), _admins.end(), client) != _admins.end());
+}
+
+bool Channel::isEmpty() const
+{
+    return _members.empty();
 }
 
 
