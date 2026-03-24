@@ -82,7 +82,7 @@ void Server::handleUser(int fd, std::istringstream &iss)
         sendMessage(fd, "464 :Password required");
         return;
     }
-    
+
 	std::string username;
 	iss >> username;
 
@@ -198,10 +198,21 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 		sendMessage(fd, topic_msg); //msg envoyé uniquement à celui qui rejoint
 	}
 
-	// TODO
-	// RPL_NAMREPLY 353 + 366
-	//353 ton_nick = #channel :@admin1 user2 user3
-	//366 ton_nick #channel :End of /NAMES list
+	// RPL_NAMREPLY 353 — liste des membres
+	std::string namesList = ":" + _serverName + " 353 " + client->getNickname() + " = " + channelName + " :";
+	const std::vector<Client*>& updatedMembers = ch->getMembers();
+	for (std::vector<Client*>::const_iterator it = updatedMembers.begin(); it != updatedMembers.end(); ++it)
+	{
+		if (ch->isAdmin(*it))
+			namesList += "@";
+		namesList += (*it)->getNickname();
+		if (it + 1 != updatedMembers.end())
+			namesList += " ";
+	}
+	sendMessage(fd, namesList);
+
+	// RPL_ENDOFNAMES 366
+	sendMessage(fd, ":" + _serverName + " 366 " + client->getNickname() + " " + channelName + " :End of /NAMES list");
 }
 
 
