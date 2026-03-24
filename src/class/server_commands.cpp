@@ -11,6 +11,12 @@ on peut utiliser >> pour lire mot par mot
 
 void Server::handlePass(int fd, std::istringstream &iss)
 {
+	if (_clients[fd]->isRegistered())
+	{
+		sendMessage(fd, ":" + _serverName + " 462 :Already registered");
+		return;
+	}
+
 	std::string pass;
 	iss >> pass;
 
@@ -45,11 +51,11 @@ c'est RFC-compliant etçca fait plus réaliste
 
 void Server::handleNick(int fd, std::istringstream &iss)
 {
-    if (!_clients[fd]->isAuthenticated()) //car le bon mdp doit être renseigné en 1er
-    {
-        sendMessage(fd, "464 :Password required");
-        return;
-    }
+	if (!_clients[fd]->isAuthenticated()) //car le bon mdp doit être renseigné en 1er
+	{
+		sendMessage(fd, "464 :Password required");
+		return;
+	}
 
 	std::string nickname;
 	iss >> nickname;
@@ -77,11 +83,17 @@ void Server::handleNick(int fd, std::istringstream &iss)
 
 void Server::handleUser(int fd, std::istringstream &iss)
 {
-    if (!_clients[fd]->isAuthenticated())
-    {
-        sendMessage(fd, "464 :Password required");
-        return;
-    }
+	if (_clients[fd]->isRegistered())
+	{
+		sendMessage(fd, ":" + _serverName + " 462 :Already registered");
+		return;
+	}
+
+	if (!_clients[fd]->isAuthenticated())
+	{
+		sendMessage(fd, "464 :Password required");
+		return;
+	}
 
 	std::string username;
 	iss >> username;
