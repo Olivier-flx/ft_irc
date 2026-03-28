@@ -336,36 +336,39 @@ void	Server::client_disconnection(size_t i)
 {
 	int fd = _fds[i].fd;
 
-    if (!_clients.count(fd))
-        return;
+    std::map<int, Client*>::iterator itClient = _clients.find(fd);
+    if (itClient == _clients.end())
+    {
+		return;
+	}
+	Client* client = itClient->second;
 
-	Client* client = _clients[fd];
     if (!client) 
 		return;
 
-	std::map<std::string, Channel*>::iterator it = _channels.begin();
-    while (it != _channels.end())
+	for (std::map<std::string, Channel*>::iterator it = _channels.begin();
+         it != _channels.end();)
     {
         Channel* chan = it->second;
         chan->removeMember(client);
-        chan->removeInvited(client); 
+        chan->removeInvited(client);
 
         if (chan->isEmpty())
         {
-			delete chan;
-   			it = _channels.erase(it);
-		}
-		else
+            delete chan;
+            it = _channels.erase(it);
+        }
+        else
         {
-            it++;
+            ++it;
         }
     }
-
-    _clients.erase(fd);
+    _clients.erase(itClient);
     delete client;
 
-	close(fd);
-    _fds.erase(_fds.begin() + i); //retire du poll
+    close(fd);
+
+    _fds.erase(_fds.begin() + i);
 
     std::cout << "Client fd " << fd << " disconnected\n";
 }

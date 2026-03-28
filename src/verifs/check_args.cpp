@@ -4,7 +4,7 @@ static int	check_ac(int ac)
 {
 	if (ac <= 1 || ac > 3)
 	 {
-		std::cout << "Err: invalid number of parameters" << std::endl;
+		std::cout << "Error: invalid number of parameters. Expected: ./ircserv <port> <password>" << std::endl;
 		return EXIT_FAILURE;
 	}
 	return EXIT_SUCCESS;

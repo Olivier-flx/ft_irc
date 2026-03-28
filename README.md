@@ -1,18 +1,27 @@
 
 This project has been created as part
-of the 42 curriculum by ofilloux[, lyl[
+of the 42 curriculum by ofilloux[, lylfergu[
 
 
 ///////Description//////
 
+The purpose of this project is the development of a minimalist IRC (Internet Relay Chat) server in C++.
+The goal is to understand the client-server model, socket management, network communication and handling multiple connections (multiplexing).
 
 //////Instructions//////
 
+**TBC**
+
+
 //////Resources//////
 
+https://modern.ircdocs.horse/
 
+https://www.csd.uoc.gr/~hy556/material/tutorials/cs556-3rd-tutorial.pdf
 
+https://www.youtube.com/watch?v=6UbKenFipjo&t=59s
 
+https://medium.com/@afatir.ahmedfatir/small-irc-server-ft-irc-42-network-7cee848de6f9
 
 
 
