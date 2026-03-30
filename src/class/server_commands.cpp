@@ -209,6 +209,9 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 		std::string topic_msg = ":" + _serverName + " 332 " + client->getNickname() + " " + channelName + " :" + ch->getTopic();
 		sendMessage(fd, topic_msg); //msg envoyé uniquement à celui qui rejoint
 	}
+	std::cout << "DEBUG: inviteOnly=" << ch->isInviteOnly()
+          << " invited=" << ch->isInvited(client)
+          << std::endl;
 
 	// RPL_NAMREPLY 353 — liste des membres
 	std::string namesList = ":" + _serverName + " 353 " + client->getNickname() + " = " + channelName + " :";
@@ -512,6 +515,14 @@ void Server::handleMode(int fd, std::istringstream &iss)
 	std::string mode;
 	iss >> mode;
 
+	std::vector<std::string> params;
+	std::string tmp;
+
+	while (iss >> tmp)
+		params.push_back(tmp);
+
+	size_t paramIndex = 0;
+
 	if (mode.empty())
 	{
 		sendMessage(fd, "324 " + channelName + " :" + ch->getModes());
@@ -533,16 +544,20 @@ void Server::handleMode(int fd, std::istringstream &iss)
 		else if (m == 't')
 			ch->setTopicRestriction(add), modeStr += "t";
 		else if (m == 'i')
-			ch->setInviteOnly(add), modeStr += "i";
+		{
+			ch->setInviteOnly(add);
+			modeStr += "i";
+			std::cout << "MODE +i set to " << add << std::endl; //debug
+		}
 		else if (m == 'o') // donner/retirer droits opérateur
 		{
-			std::string targetNick;
-			iss >> targetNick;
-			if (targetNick.empty())
+			if (paramIndex >= params.size())
 			{
 				sendMessage(fd, "461 MODE :Not enough parameters");
 				continue;
 			}
+			std::string targetNick = params[paramIndex++];
+
 			Client* target = getClientByNick(targetNick);
 			if (!target || std::find(members.begin(), members.end(), target) == members.end())
 			{
@@ -577,37 +592,47 @@ void Server::handleMode(int fd, std::istringstream &iss)
 		else if (m == 'k') // mot de passe channel
 		{
 			std::string key;
-			iss >> key;
-			if (add && key.empty())
+
+			if (add)
 			{
-				sendMessage(fd, "461 MODE :Not enough parameters");
-				continue;
+				if (paramIndex >= params.size())
+				{
+					sendMessage(fd, "461 MODE :Not enough parameters");
+					continue;
+				}
+				key = params[paramIndex++];
 			}
-			if (!add)
+			else
 				key = "";
 
 			ch->setMode('k', key);
 
 			if (!key.empty())
 				paramValue.push_back(key);
+
 			modeStr += "k";
 		}
 		else if (m == 'l') // limite de clients
 		{
 			std::string limit;
-			iss >> limit;
-			if (add && limit.empty())
+
+			if (add)
 			{
-				sendMessage(fd, "461 MODE :Not enough parameters");
-				continue;
+				if (paramIndex >= params.size())
+				{
+					sendMessage(fd, "461 MODE :Not enough parameters");
+					continue;
+				}
+				limit = params[paramIndex++];
 			}
-			if (!add)
+			else
 				limit = "";
 
 			ch->setMode('l', limit);
 
 			if (!limit.empty())
 				paramValue.push_back(limit);
+
 			modeStr += "l";
 		}
 		else

@@ -134,7 +134,7 @@ std::string Channel::getModes() const
 		res += "t";
 	if (_inviteOnly)
 		res += "i";
-	return (res);
+	return ("+" + res);
 }
 
 std::string Channel::getKey() const
@@ -156,6 +156,7 @@ void Channel::setTopic(const std::string &topic)
 void Channel::setInviteOnly(bool value)
 {
 	_inviteOnly = value;
+	std::cout << "SET inviteOnly = " << value << std::endl; //debug
 }
 
 void Channel::setTopicRestriction(bool value)

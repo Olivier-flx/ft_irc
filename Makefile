@@ -3,7 +3,7 @@ NAME = ircserv
 COMP = c++
 
 
-C_FLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address - g -Wshadow
+C_FLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g -Wshadow
 DEPS_FLAGS = -I./headers -MMD -MP
 FLAGS = $(C_FLAGS) $(DEPS_FLAGS)
 
