@@ -356,7 +356,7 @@ void	Server::client_disconnection(size_t i)
         if (chan->isEmpty())
         {
             delete chan;
-            it = _channels.erase(it);
+            _channels.erase(it++);
         }
         else
         {
