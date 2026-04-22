@@ -13,6 +13,10 @@ The goal is to understand the client-server model, socket management, network co
 **TBC**
 
 
+pour premiers tests manuels avec netcat 
+
+nc -C 127.0.0.1 6667 (donné dans le sujet) 
+
 //////Resources//////
 
 https://modern.ircdocs.horse/

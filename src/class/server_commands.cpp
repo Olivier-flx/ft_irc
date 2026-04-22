@@ -524,7 +524,7 @@ void Server::handleMode(int fd, std::istringstream &iss)
 		{
 			ch->setInviteOnly(add);
 			modeStr += "i";
-			std::cout << "MODE +i set to " << add << std::endl; //debug
+			//std::cout << "MODE +i set to " << add << std::endl; //debug
 		}
 		else if (m == 'o') // donner/retirer droits opérateur
 		{
@@ -533,36 +533,46 @@ void Server::handleMode(int fd, std::istringstream &iss)
 				sendMessage(fd, "461 MODE :Not enough parameters");
 				continue;
 			}
-			std::string targetNick = params[paramIndex++];
 
+			std::string targetNick = params[paramIndex++];
 			Client* target = getClientByNick(targetNick);
-			if (!target || std::find(members.begin(), members.end(), target) == members.end())
+				
+			if (!target)
+			{
+				sendMessage(fd, "401 " + targetNick + " :No such nick");
+				continue;
+			}
+
+			bool found = false;
+
+			for (std::vector<Client*>::const_iterator it = members.begin();
+     			it != members.end(); ++it)
+			{
+				if (*it && (*it)->getNickname() == targetNick)
+				{
+					found = true;
+					break;
+				}
+			}
+
+			if (!found)
 			{
 				sendMessage(fd, "441 " + targetNick + " " + channelName + " :They aren't on that channel");
 				continue;
 			}
+
 			if (add)
 				ch->addAdmin(target);
 			else
 			{
-				if (ch->getMembers().size() == 1) // seul membre = seul admin
-				{
-					sendMessage(fd, ":" + _serverName + " NOTICE " + client->getNickname()
-					+ " :Cannot remove admin rights: you are the only member of " + channelName);
+				if (ch->getAdmins().size() == 1 && ch->isAdmin(target))
+      			{
+					sendMessage(fd, "482 " + channelName + " :Cannot remove last operator"); //debug
 					continue;
 				}
-				if (ch->getAdmins().size() == 1 && ch->isAdmin(target)) // droit d'admin transmit au premier membre
-				{
-					//  transfere de droits a un membre
-					ch->removeAdmin(target); // promotion automatique faite dans removeAdmin()
-					// Notifier le nouveau admin
-					Client* newAdmin = ch->getAdmins()[0];
-					sendMessage(newAdmin->getFd(), ":" + _serverName + " NOTICE " + newAdmin->getNickname()
-						+ " :You have been promoted to channel operator of " + channelName);
-				}
-				else
-					ch->removeAdmin(target);
+				ch->removeAdmin(target);
 			}
+
 			modeStr += "o";
 			paramValue.push_back(targetNick);
 		}
@@ -575,17 +585,15 @@ void Server::handleMode(int fd, std::istringstream &iss)
 				if (paramIndex >= params.size())
 				{
 					sendMessage(fd, "461 MODE :Not enough parameters");
-					continue;
+					return;
 				}
+
 				key = params[paramIndex++];
+				ch->setMode('k', key);
+				paramValue.push_back(key);
 			}
 			else
-				key = "";
-
-			ch->setMode('k', key);
-
-			if (!key.empty())
-				paramValue.push_back(key);
+				ch->setMode('k', "");
 
 			modeStr += "k";
 		}
@@ -601,6 +609,24 @@ void Server::handleMode(int fd, std::istringstream &iss)
 					continue;
 				}
 				limit = params[paramIndex++];
+				for (size_t j = 0; j < limit.size(); j++)
+				{
+    				if (!std::isdigit(static_cast<unsigned char>(limit[j])))
+   					{
+        				sendMessage(fd, "472 l :Invalid limit");
+        				limit = "";
+       	 				break;
+   					}
+				}
+
+				if (limit == "0")
+				{
+					sendMessage(fd, "472 l :Invalid limit");
+    				continue;
+				}
+
+				if (limit.empty())
+            		continue;
 			}
 			else
 				limit = "";
@@ -694,10 +720,17 @@ void Server::handleKick(int fd, std::istringstream &iss)
 		_channels.erase(channelName);
 }
 
-void Server::handlePing(int fd, std::istringstream &iss)
+void Server::handlePing(int fd, std::istringstream &iss) //sans PONG le client (nc, irssi, etc.) pense que le serveur est mort, donc important
 {
 	std::string token;
 	iss >> token;
+
+	if (token.empty())
+    {
+        sendMessage(fd, "409 :No origin specified");
+        return;
+    }
+
 	if (token[0] == ':')
 		token.erase(0, 1);
 	sendMessage(fd, ":" + _serverName + " PONG " + _serverName + " :" + token);

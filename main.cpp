@@ -30,6 +30,7 @@ int	main(int ac, char **argv)
 		Server serv(port, password);
 		std::signal(SIGINT, Server::SignalHandler); //gère signal (ctrl + c)
 		std::signal(SIGQUIT, Server::SignalHandler); //-> gère signal (ctrl + \)
+		std::signal(SIGTSTP, SIG_IGN); // ignore ctrl + z (car provoque pb de reconnexion au port)
 		serv.init();
 		serv.run();
 	}
