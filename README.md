@@ -1,66 +1,111 @@
+This project has been created as part of the 42 curriculum by ofilloux[, lylfergu[.
 
-This project has been created as part
-of the 42 curriculum by ofilloux[, lylfergu[
+Le projet ft_irc consiste à développer un serveur IRC en respectant le standard IRC tout en utilisant le langage C++98. Le serveur doit gérer plusieurs connexions simultanées et fonctionner en mode non bloquant pour permettre une communication fluide entre les clients.
+
+**DESCRIPTION**
+
+The ft_irc project consists of developing an IRC server while adhering to the IRC protocol and using the C++98 programming language. To enable smooth client communication, the server must manage multiple connections at once and operate in a non-blocking mode using a single poll() loop.
+The server communicates using the TCP/IP protocol and can be used with a standard IRC client. Several IRC clients exist, we decided to use Irssi as our reference client.
+
+The server supports the core features of an IRC network, including:
+
+- client authentication with password protection,
+- nickname and username registration,
+- channel creation and management,
+- private and channel messaging,
+- multiple clients connected at the same time,
+- operator and user roles,
+- channel operator commands such as KICK, INVITE, TOPIC, and MODE.
+
+Several channel modes are implemented:
+
++i → invite-only channel,
++t → topic modification restricted to operators,
++k → password-protected channel,
++o → operator privileges,
++l → user limit.
 
 
-///////Description//////
+**INSTRUCTIONS**
 
-The purpose of this project is the development of a minimalist IRC (Internet Relay Chat) server in C++.
-The goal is to understand the client-server model, socket management, network communication and handling multiple connections (multiplexing).
+1. Compilation
 
-//////Instructions//////
+Use the Makefile to compile the project with the required compilation flags.
+The project must compile using the C++98 standard with the flags -Wall -Wextra -Werror.
 
-**TBC**
+2. Start the server
+
+./ircserv <port> <password>
+
+Arguments:
+<port>: The port number on which the server will listen for incoming connections.
+<password>: The password that clients must provide to connect to the server.
+
+3. Connect to an IRC Server
+
+Test with netcat :
+
+nc localhost <port>
+PASS <password>
+USER bob
+NICK bobby
+JOIN #test
+PRIVMSG #test :Hello World!
+QUIT
+
+-----------------------
+
+Connection with an IRC client: irssi (recommended for testing)
+
+Launch irssi
+/CONNECT localhost <port> <password>
+/USER Tom
+/NICK tomtom
+/JOIN #general
+/MSG #general Hey guys !
 
 
-pour premiers tests manuels avec netcat 
+//CONNECTION COMMANDS
 
-nc -C 127.0.0.1 6667 (donné dans le sujet) 
+| Command | Description                    | Syntax                                    |
+| ------- | ------------------------------ | ----------------------------------------- |
+| `PASS`  | Server password authentication | `PASS <password>`                         |
+| `NICK`  | Set the user's nickname        | `NICK <nickname>`                         |
+| `USER`  | Set user information           | `USER <user>`                             |
+| `QUIT`  | Disconnect from the server     | `QUIT [:<message>]`                       |
 
-//////Resources//////
+//CHANNEL COMMANDS
+
+| Command   | Description                       | Syntax                                   |
+| --------- | --------------------------------- | ---------------------------------------- |
+| `JOIN`    | Join a channel                    | `JOIN <#channel> [<key>]`                |
+| `PART`    | Leave a channel                   | `PART <#channel>`                        |
+| `MODE`    | Modify channel modes              | `MODE <#channel> <modes> [<params>]`     |
+| `TOPIC`   | View or change the channel topic  | `TOPIC <#channel> :<topic>`              |
+| `INVITE`  | Invite a user to a channel        | `INVITE <nickname> <#channel>`           |
+| `KICK`    | Remove a user from a channel      | `KICK <#channel> <nickname>`             |
+| `PRIVMSG` | Send a private or channel message | `PRIVMSG <target> :<message>`            |
+
+
+//DEBUG AND DIAGNOSTIC TOOLS
+
+Check active connections on port <port>:
+
+lsof -i :<port>
+
+Forcefully close processes using port <port>:
+
+kill -9 $(lsof -t -i :<port>)
+
+Memory leaks and active file descriptor check for ircserv using Valgrind:
+
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --track-fds=yes ./ircserv <port> <password>
+
+
+**RESOURCES**
 
 https://modern.ircdocs.horse/
 
-https://www.csd.uoc.gr/~hy556/material/tutorials/cs556-3rd-tutorial.pdf
-
-https://www.youtube.com/watch?v=6UbKenFipjo&t=59s
-
-https://medium.com/@afatir.ahmedfatir/small-irc-server-ft-irc-42-network-7cee848de6f9
-
-
-
-
-
-
-
-
-_________________________TO TRANSLATE____________________________
-
-/////// 1. CHOIX DU CLIENT IRC /////////
-
-Client	| Type		| OS		| Pourquoi pour ft_irc ?
--------------------------------------------------------------------------------------
-Irssi	| Terminal	| Linux/WSL	| Pour valider la conformité stricte au RFC.
-HexChat	| Graphique	| Linux/Win	| Pour tester l'expérience utilisateur et les canaux.
-----------------------------------------
-
-💡 L'outil indispensable : Netcat (nc) (man nc)
-Avant même de choisir un client, ton meilleur ami sera Netcat. En tapant nc 127.0.0.1 6667, tu peux envoyer manuellement tes commandes (ex: NICK flo) et voir exactement ce que ton serveur renvoie sans aucun filtre. C'est l'étape 0 de tout bon développeur d'IRC.
-
-Conseil : Commencer par Netcat au debut, puis passer sur Irssi pour coder les commandes de base, et termine avec HexChat pour t'assurer que le serveur est "propre" visuellement.
-
-
-SRCS: 
-
-https://modern.ircdocs.horse/#servers //TOP
-
-https://nathaan.me/projects/irc
-
-https://github.com/marineks/Ft_irc/blob/main/doc_irc/sockets_research
-
-https://medium.com/@mohamedsarda/ft-irc-channels-and-command-management-ff1ff3758a0b
-
-https://miro.com/app/board/uXjVMFuYfyA=/?share_link_id=256377652862
+https://datatracker.ietf.org/doc/html/rfc2812
 
 https://www.csd.uoc.gr/~hy556/material/tutorials/cs556-3rd-tutorial.pdf
-
