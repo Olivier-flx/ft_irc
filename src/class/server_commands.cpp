@@ -158,6 +158,10 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 		sendMessage(fd, "461 JOIN :Not enough parameters");
 		return;
 	}
+	
+	if (!_clients[fd]->isRegistered())
+    	return;
+
 	if (channelName[0] != '#' && channelName[0] != '&')
 	{
 		sendMessage(fd, "476 " + channelName + " :Bad channel mask");

@@ -50,6 +50,15 @@ Server::~Server()
 	}
 	_clients.clear();
 	//While () fd ouvert, fermer tous ls fd ces clients
+
+	std::map<std::string, Channel*>::iterator it2;//nettoie channels
+	for (it2 = _channels.begin(); it2 != _channels.end(); ++it2)
+	{
+		if (it2->second)
+			delete it2->second;
+	}
+	_channels.clear();
+	
 	std::cout << "Server : Destructor called" << std::endl;
 };
 
@@ -392,7 +401,11 @@ void	Server::exec_cmd(int client_fd)
 	std::string command;
 	iss >> command;
 
-	if (command == "PASS")
+	if (command == "CAP") //important sinon probleme de connexion 
+	{
+		sendMessage(client_fd, ":ft_irc CAP * LS :");
+	}
+	else if (command == "PASS")
 		handlePass(client_fd, iss);
 	else if (command == "NICK")
 		handleNick(client_fd, iss);
@@ -414,8 +427,6 @@ void	Server::exec_cmd(int client_fd)
 		handleMode(client_fd, iss);
 	else if (command == "PING")
 		handlePing(client_fd, iss);
-	else if (command == "CAP" || command == "WHOIS")
-		; // ignore (irssi stuff)
 	else
 		sendMessage(client_fd, "Unknown command: " + command);
 }
