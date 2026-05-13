@@ -3,18 +3,20 @@ NAME = ircserv
 COMP = c++
 
 
-C_FLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -Wshadow
+C_FLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g -Wshadow
 DEPS_FLAGS = -I./headers -MMD -MP
 FLAGS = $(C_FLAGS) $(DEPS_FLAGS)
 
 
 BUILD_DIR = build
 
-CPP_CLASS = class/client.cpp \
-			class/server.cpp
+CPP_CLASS = class/Client.cpp \
+			class/Server.cpp \
+			class/Channel.cpp \
+			class/server_commands.cpp \
 
 CPP_FILES = verifs/check_args.cpp \
-			server/socket.cpp
+			utils/trim.cpp
 
 SRC = main.cpp \
 	$(addprefix src/, $(CPP_FILES))\
@@ -23,7 +25,8 @@ SRC = main.cpp \
 
 HPP_FILES = ft_irc.hpp \
 			Client.hpp \
-			Server.hpp
+			Server.hpp \
+			Channel.hpp \
 
 
 HEADERS = $(addprefix headers/, $(HPP_FILES))

@@ -5,7 +5,7 @@
 #include <cstdlib>
 
 #include <sys/types.h> //for socket
-#include <sys/socket.h> 
+#include <sys/socket.h>
 #include <netinet/in.h> //for sockaddr_in
 #include <string.h>
 #include <iostream>
@@ -14,20 +14,29 @@
 #include <poll.h> //struct pollfd{}
 #include <sys/stat.h> //?
 #include <fcntl.h> //for fcntl()
+#include <algorithm> //find(); remove(); etc...
 
-
+#include <sstream> //isstream
 #include <cstdio> //perror printf
 #include <cstring> //strerror
 #include <unistd.h> // for close()
 
 #include <arpa/inet.h> //to handle ip adrress, manage IPv4, etc...
 #include <cctype> // for isprint, isalpha, etc...
-#include <iomanip> //cout, stringstream, etc.. 
+#include <iomanip> //cout, stringstream, etc..
 #include <cerrno> //for errno
+
+#include <csignal>
 
 
 bool	arg_ok(int ac, char **argv, int &port);
 
+#include <poll.h>
+
+#include <arpa/inet.h>
+
+// utils
+std::string&	trim(std::string& str);
 
 
 #endif

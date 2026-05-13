@@ -1,6 +1,6 @@
 
 #include "ft_irc.hpp"
-#include "class.hpp"
+#include "Server.hpp"
 
 /**
  * Pour tester : Ouvrir deux terminaux
@@ -27,9 +27,10 @@ int	main(int ac, char **argv)
 
 	try
 	{
-		Server serv(password, port);
-		signal(SIGINT, Server::SignalHandler); //gère signal (ctrl + c)
-		signal(SIGQUIT, Server::SignalHandler); //-> gère signal (ctrl + \)
+		Server serv(port, password);
+		std::signal(SIGINT, Server::SignalHandler); //gère signal (ctrl + c)
+		std::signal(SIGQUIT, Server::SignalHandler); //-> gère signal (ctrl + \)
+		std::signal(SIGTSTP, SIG_IGN); // ignore ctrl + z (car provoque pb de reconnexion au port)
 		serv.init();
 		serv.run();
 	}
@@ -39,13 +40,13 @@ int	main(int ac, char **argv)
 		return (EXIT_FAILURE);
 	}
 
-	//create socket
-	//Bind the socket to a IP / port
+	// create socket
+	// Bind the socket to a IP / port
 	// Mark the socket for listening in
 	// accept a call
 	// close the listening socket
 	// while reveiving display message , echo message
-	//close socket
+	// close socket
 
 	return EXIT_SUCCESS;
 }

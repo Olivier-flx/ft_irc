@@ -7,49 +7,64 @@
 class Client
 {
 	private:
-		Client(void); 
+		Client(void);
 		int			_fd; // socket individuelle d'un client
 		std::string	_ip;
 		std::string	_nickname;
 		std::string	_username;
 		std::string	_hostname;
 		std::string	_password;
-		std::string	_buffer;                // ⚠️ CRUCIAL : Stocke les morceaux de msg
-		bool 		_Authenticated; //a envoyé le bon username, nickname et password
+		std::string	_buffer;   // Stocke les morceaux de msg
+		std::string	_cmd;
+		bool 		_Authenticated; //a envoyé le bon password
 		bool		_isRegistered; // a envoyé nick + user + pass ET a un fd (= a été accepée par le serveur)
-		bool 		_isOperator;
-
+		bool 		_isOperator; //droit speciaux sur le serveur entier (KILL, OPER, .. )
 
 	public:
-		Client(std::string nickname, std::string username, int fd) //fd au lieu de password car on connait le fd au moment où on accepte la connexion mais pas encore le password
+		Client (int client_fd, std::string client_ip);
+		Client(std::string nickname, std::string username, int fd); //[NON UTILISE] //fd au lieu de password car on connait le fd au moment où on accepte la connexion mais pas encore le password
 		Client(const Client &cpy);
 		Client &operator=(const Client &src);
 		~Client();
 
-		//getters
 
-		int Client::getFd() const;  
-		const std::string& getNickname() const;
-		const std::string& getUsername() const;
-		const std::string& getBuffer() const;
-		const std::string& getIp() const;
-		std::string getHostname() const;
+		//[IDENTITE]
+			// getters
+			int					getFd() const;
+			const std::string	&getIp() const;
+			const std::string	&getNickname() const;
+			const std::string	&getUsername() const;
+			const std::string	getHostname() const;
 
-		bool isRegistered() const;
-		bool isAuthenticated() const;
-		bool isOperator() const;
+			// setters
+			void				setFd(int fd);
+			void 				setIpAdd(const std::string &ipadd);
+			void				setNickname(const std::string &nickname);
+			void				setUsername(const std::string &username);
 
+		//[ETAT]
+			// getters
+			bool				isRegistered() const;
+			bool				isAuthenticated() const;
+			bool				isOperator() const;
 
-		//setters
+			// setters
+			void				setOperator(bool value);
+			void 				setAuthenticated(bool value);
+			void				setRegistered(bool value);
 
-		void setNickname(const std::string &nickname);
-		void setUsername(const std::string &username);
-		void setBuffer(std::string &data);
-		void setFd(int fd);
-		void setOperator(bool value);
-		void setRegistered(bool value);
-		void setIpAdd(const std::string &ipadd);
-		void appendBuffer(const std::string& data);
+		//[BUFFER & COMMANDS]
+			// getters
+			std::string			&getBuffer();
+			std::string			getCmd() const;
 
+			// setters
+			void				setCmd(const std::string &cmd);
+
+			// methodes
+			void				appendBuffer(const std::string &data);
+			void				clearBuffer(size_t start, size_t end);
+			void				clearCmd();
+};
 
 #endif
