@@ -147,22 +147,30 @@ bool	Server::cannotJoinChannel(Channel *ch, Client *client, const std::string &k
 
 void Server::handleJoin(int fd, std::istringstream &iss)
 {
+	std::cout << "DEBUG: On arrive dans handlejoin" << std::endl; //debug efface
+	Client* client = _clients[fd];//client qui fait join
+
+	if (!client->isRegistered()|| client->getNickname().empty() || client->getUsername().empty())
+    	return;
+
 	std::string channelName;
 	std::string key;
-	iss >> channelName;  //recuperation du 1er arg après JOIN
+
+	if (!(iss >> channelName))//recuperation du 1er arg après JOIN
+	{
+    	sendMessage(fd, "461 JOIN :Not enough parameters\r\n");
+    	return;
+	}
+
 	iss >> key; // recuperation du mot de passe
 
-	std::cout << "DEBUG : channel joined name = '" + channelName + "'" << std::endl;
-	if (channelName.empty())
+	if (channelName.empty() || channelName == ":"  || channelName[0] == ':')
 	{
 		sendMessage(fd, "461 JOIN :Not enough parameters");
 		return;
 	}
-	
-	if (!_clients[fd]->isRegistered())
-    	return;
 
-	if (channelName[0] != '#' && channelName[0] != '&')
+	if (channelName.size() < 2 || (channelName[0] != '#' && channelName[0] != '&'))
 	{
 		sendMessage(fd, "476 " + channelName + " :Bad channel mask");
 		return;
@@ -172,7 +180,6 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 		_channels[channelName] = new Channel(channelName);
 
 	Channel* ch = _channels[channelName]; //on recup l'obj channel
-	Client* client = _clients[fd]; //et le client qui fait JOIN
 
 	std::vector<Client*> members = ch->getMembers();
 	if (std::find(members.begin(), members.end(), client) != members.end())
@@ -186,15 +193,12 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 	ch->addMember(client);
 	ch->removeInvited(client);
 
-	members = ch->getMembers();
-	std::string join_msg = ":" + client->getNickname() + " JOIN " + channelName + "\r\n";
-	for (std::vector<Client*>::iterator it = members.begin(); it != members.end(); ++it)
-	{
-		Client* m = *it;
-		int ret = send(m->getFd(), join_msg.c_str(), join_msg.size(), 0); //broadcast le join à chaque membre du channel
-		if (ret == -1)
-			std::cerr << "ERROR failed sending JOIN to " << m->getNickname() << std::endl;
-	}
+	const std::vector<Client*>& newMembers = ch->getMembers();//// on reprend les membres APRÈS modification
+
+	std::string join_msg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " JOIN " + channelName;
+
+	for (std::vector<Client*>::const_iterator it = newMembers.begin(); it != newMembers.end(); ++it)
+		sendMessage((*it)->getFd(), join_msg);
 
 	if (!ch->getTopic().empty())
 	{
@@ -232,8 +236,11 @@ void Server::handlePrivMsg(int fd, std::istringstream &iss)
 		return;
 	}
 
-	if (message[0] == ':')
-		message.erase(0, 1);
+	if (!message.empty() && message[0] == ' ')
+    	message.erase(0, 1);
+
+	if (!message.empty() && message[0] == ':')
+    	message.erase(0, 1);
 
 	Client* sender = _clients[fd];
 
@@ -254,12 +261,12 @@ void Server::handlePrivMsg(int fd, std::istringstream &iss)
 			return;
 		}
 
-		std::string full_msg = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " PRIVMSG " + target + " :" + message + "\r\n";
+		std::string full_msg = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " PRIVMSG " + target + " :" + message;
 		for (std::vector<Client*>::const_iterator it = members.begin(); it != members.end(); ++it) // envoi à tous les membres sauf à celui qui envoie le msg
 		{
 			Client* c = *it;
 			if (c != sender)
-				send(c->getFd(), full_msg.c_str(), full_msg.size(), 0);
+				sendMessage(c->getFd(), full_msg);
 		}
 	}
 	else
@@ -280,8 +287,8 @@ void Server::handlePrivMsg(int fd, std::istringstream &iss)
 			return;
 		}
 
-		std::string full_msg = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " PRIVMSG " + target + " :" + message + "\r\n";
-		send(receiver->getFd(), full_msg.c_str(), full_msg.size(), 0);
+		std::string full_msg = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " PRIVMSG " + target + " :" + message;
+		sendMessage(receiver->getFd(), full_msg);
 	}
 }
 
@@ -336,12 +343,12 @@ void Server::handleTopic(int fd, std::istringstream &iss)
 
 	ch->setTopic(topic);
 
-	std::string msg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " TOPIC " + channelName + " :" + topic + "\r\n";;
+	std::string msg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " TOPIC " + channelName + " :" + topic;;
 
 	for (std::vector<Client*>::const_iterator it = ch->getMembers().begin(); it != ch->getMembers().end(); ++it)
 	{
 		Client* c = *it;
-		send(c->getFd(), msg.c_str(), msg.size(), 0);
+		sendMessage(c->getFd(), msg);
 	}
 }
 
@@ -381,19 +388,22 @@ void Server::handlePart(int fd, std::istringstream &iss)
 
 	// prévenir tous les membres
 	std::string notify = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " PART " + channelName;
-	if (!msg.empty()) notify += " :" + msg;
-	notify += "\r\n";
+	if (!msg.empty()) 
+		notify += " :" + msg;
 
 	for (std::vector<Client*>::const_iterator it = ch->getMembers().begin(); it != ch->getMembers().end(); ++it)
 	{
 		Client* c = *it;
-		send(c->getFd(), notify.c_str(), notify.size(), 0);
+		sendMessage(c->getFd(), notify);
 	}
 
 	ch->removeMember(client);
 
 	if (ch->getMembers().empty())
+	{
+		delete ch;
 		_channels.erase(channelName);
+	}
 }
 
 
@@ -653,11 +663,9 @@ void Server::handleMode(int fd, std::istringstream &iss)
 					+ " " + modeStr;
 	for (size_t i = 0; i < paramValue.size(); i++)
 		msg += " " + paramValue[i];
-	msg += "\r\n";
 
-	for (std::vector<Client*>::const_iterator it = ch->getMembers().begin();
-			it != ch->getMembers().end(); ++it) //envoi à tous les membres
-		send((*it)->getFd(), msg.c_str(), msg.size(), 0);
+	for (std::vector<Client*>::const_iterator it = ch->getMembers().begin(); it != ch->getMembers().end(); ++it) //envoi à tous les membres
+		sendMessage((*it)->getFd(), msg);
 }
 
 
@@ -710,12 +718,11 @@ void Server::handleKick(int fd, std::istringstream &iss)
 						   " KICK " + channelName + " " + targetNick;
 	if (!reason.empty())
 		kick_msg += " :" + reason;
-	kick_msg += "\r\n";
-
+	
 	for (std::vector<Client*>::const_iterator it = members.begin(); it != members.end(); ++it) //info à tous les membres
 	{
 		Client* c = *it;
-		send(c->getFd(), kick_msg.c_str(), kick_msg.size(), 0);
+		sendMessage(c->getFd(), kick_msg);
 	}
 
 	ch->removeMember(target);
@@ -737,6 +744,6 @@ void Server::handlePing(int fd, std::istringstream &iss) //sans PONG le client (
 
 	if (token[0] == ':')
 		token.erase(0, 1);
-	sendMessage(fd, ":" + _serverName + " PONG " + _serverName + " :" + token);
-	std::cout << ":" + _serverName + " PONG " + _serverName + " :" + token << std::endl;  // DEBUG
+	sendMessage(fd, "PONG " + token);
 }
+

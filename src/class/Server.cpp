@@ -58,7 +58,7 @@ Server::~Server()
 			delete it2->second;
 	}
 	_channels.clear();
-	
+
 	std::cout << "Server : Destructor called" << std::endl;
 };
 
@@ -397,13 +397,26 @@ void	Server::parse_cmd(int client_fd)
 void	Server::exec_cmd(int client_fd)
 {
 	std::string cmd = _clients[client_fd]->getCmd();
+	std::cout << "[RAW CMD] " << cmd << std::endl;//debug irssi
 	std::istringstream iss(cmd);
 	std::string command;
 	iss >> command;
 
-	if (command == "CAP") //important sinon probleme de connexion 
+	if (command == "CAP") //pour connexion irssi, regle le pb de CAP LS
 	{
-		sendMessage(client_fd, ":ft_irc CAP * LS :");
+		std::string sub;
+    	iss >> sub;
+
+    	std::string extra; // au cas ou version number (ex: 302)
+    	iss >> extra;
+		std::cout << "[CAP DEBUG] sub=" << sub << " extra=" << extra << std::endl;//debug irssi
+
+		if (sub == "LS")
+		{
+			std::cout << "[CAP ACTION] sending LS response" << std::endl;//debug irssi
+        	sendMessage(client_fd, "CAP * LS :");
+		}
+		return;
 	}
 	else if (command == "PASS")
 		handlePass(client_fd, iss);
