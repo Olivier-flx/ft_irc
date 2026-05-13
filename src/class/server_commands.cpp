@@ -52,12 +52,16 @@ void Server::handleNick(int fd, std::istringstream &iss)
     }
 
 	std::string nickname;
-	iss >> nickname;
-
-	if (nickname.empty())
+	if (!(iss >> nickname))
 	{
-		sendMessage(fd, "431 :No nickname given");
-		return;
+    	sendMessage(fd, "431 :No nickname given");
+    	return;
+	}
+
+	if (nickname.find(' ') != std::string::npos)//npos signifie introuvable
+	{
+    	sendMessage(fd, "432 " + nickname + " :Erroneous nickname");
+    	return;
 	}
 
 	if (!isValidNickname(nickname))
