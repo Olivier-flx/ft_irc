@@ -352,7 +352,7 @@ void	Server::client_disconnection(size_t i)
 	}
 	Client* client = itClient->second;
 
-    if (!client) 
+    if (!client)
 		return;
 
 	for (std::map<std::string, Channel*>::iterator it = _channels.begin();
@@ -386,12 +386,7 @@ void	Server::client_disconnection(size_t i)
 void	Server::parse_cmd(int client_fd)
 {
 	std::string cmd = _clients[client_fd]->getCmd();
-
 	cmd = trim(cmd);
-
-	std::cout << "Depuis parse_cmd : `" << cmd <<"`\n";
-
-
 }
 
 void	Server::exec_cmd(int client_fd)
@@ -442,7 +437,7 @@ void	Server::exec_cmd(int client_fd)
 	else if (command == "PING")
 		handlePing(client_fd, iss);
 	else
-		sendMessage(client_fd, "Unknown command: " + command);
+		sendReply(client_fd, "421", command, "Unknown command");
 }
 
 
@@ -451,18 +446,17 @@ void	Server::exec_cmd(int client_fd)
 bool Server::isValidNickname(std::string& nickname)
 {
 	if (nickname.empty() || nickname.size() > 9) //on se base sur RFC d'IRC
-		return (false);
-	
+			return (false);
 	if (!std::isalpha(nickname[0]) && nickname[0] != '_')
-        return (false);
+		return (false);
 
 	for(size_t i = 0; i < nickname.size(); i++)
 	{
 		if(!std::isalnum(nickname[i]) && nickname[i] != '_') //a-z ou 0-9
 			return (false);
-		
+
 		if (nickname[i] == '#' || nickname[i] == '&' || nickname[i] == ':')
-            return (false);
+			return (false);
 	}
 	return (true);
 }

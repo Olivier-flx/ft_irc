@@ -51,6 +51,7 @@ class Server
 		void	handleUser(int fd, std::istringstream &iss);
 		void	tryRegister(int fd);
 		const	std::string& getCreationTime() const;
+		void 	sendReply(int fd, const std::string& code, const std::string& args, const std::string& msg);
 		void	sendMessage(int fd, const std::string &msg);
 
 		//Commands
