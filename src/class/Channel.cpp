@@ -22,9 +22,24 @@ void Channel::removeMember(Client* client)
 	if (!client)
 		return;
 
-	_members.erase(std::remove(_members.begin(), _members.end(), client),_members.end()); //on parcourt le vecteur, retire le client, puis on efface l'espace a la fin laissé suite à ce retrait
-	_admins.erase(std::remove(_admins.begin(), _admins.end(), client),_admins.end());
+	std::vector<Client*>::iterator it;
 
+	for (it = _members.begin(); it != _members.end(); )
+	{
+		if (*it && (*it)->getNickname() == client->getNickname())
+			it = _members.erase(it);
+		else
+			++it;
+	}
+
+	for (it = _admins.begin(); it != _admins.end(); )
+	{
+		if (*it && (*it)->getNickname() == client->getNickname())
+			it = _admins.erase(it);
+		else
+			++it;
+	}
+	
 	if (_admins.empty() && !_members.empty())
 		_admins.push_back(_members[0]); //si plus d'admin, on donne admin au premier
 }

@@ -50,6 +50,15 @@ Server::~Server()
 	}
 	_clients.clear();
 	//While () fd ouvert, fermer tous ls fd ces clients
+
+	std::map<std::string, Channel*>::iterator it2;//nettoie channels
+	for (it2 = _channels.begin(); it2 != _channels.end(); ++it2)
+	{
+		if (it2->second)
+			delete it2->second;
+	}
+	_channels.clear();
+
 	std::cout << "Server : Destructor called" << std::endl;
 };
 
@@ -356,7 +365,7 @@ void	Server::client_disconnection(size_t i)
         if (chan->isEmpty())
         {
             delete chan;
-            it = _channels.erase(it);
+            _channels.erase(it++);
         }
         else
         {
@@ -388,11 +397,29 @@ void	Server::parse_cmd(int client_fd)
 void	Server::exec_cmd(int client_fd)
 {
 	std::string cmd = _clients[client_fd]->getCmd();
+	std::cout << "[RAW CMD] " << cmd << std::endl;
+
 	std::istringstream iss(cmd);
 	std::string command;
-	iss >> command;
 
-	if (command == "PASS")
+	if (!(iss >> command))
+    	return;
+
+	if (command == "CAP") //pour connexion irssi, regle le pb de CAP LS
+	{
+		std::string sub;
+    	iss >> sub;
+
+		if (sub == "LS")
+		{
+			std::cout << "[CAP ACTION] sending LS response" << std::endl;//debug irssi
+        	sendMessage(client_fd, "CAP * LS :");
+		}
+		else if (sub == "END")
+    		return;
+		return;
+	}
+	else if (command == "PASS")
 		handlePass(client_fd, iss);
 	else if (command == "NICK")
 		handleNick(client_fd, iss);
@@ -414,8 +441,6 @@ void	Server::exec_cmd(int client_fd)
 		handleMode(client_fd, iss);
 	else if (command == "PING")
 		handlePing(client_fd, iss);
-	else if (command == "CAP" || command == "WHOIS")
-		; // ignore (irssi stuff)
 	else
 		sendMessage(client_fd, "Unknown command: " + command);
 }

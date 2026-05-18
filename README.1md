@@ -1,0 +1,95 @@
+
+This project has been created as part
+of the 42 curriculum by ofilloux[, lylfergu[
+
+
+///////Description//////
+
+The purpose of this project is the development of a minimalist IRC (Internet Relay Chat) server in C++.
+The goal is to understand the client-server model, socket management, network communication and handling multiple connections (multiplexing).
+
+//////Instructions//////
+
+**TBC**
+
+
+pour premiers tests manuels avec netcat 
+
+nc -C 127.0.0.1 6667 (donné dans le sujet) 
+
+# Test des commandes standards
+./ircserv 6667 test
+nc localhost 6667 < test_commands.txt
+
+# Test multi-clients
+for i in {1..10}; do nc localhost 6667 & done
+
+# Test de charge avec vrais clients
+irssi connecté simultanément avec plusieurs netcat
+
+
+DEBUG AND DIAGNOSTIC TOOLS
+
+Check active connections on port <port> using lsof:
+
+lsof -i :<port>
+
+Forcefully close processes using port <port>:
+kill -9 $(lsof -t -i :<port>)
+
+Memory leaks and active file descriptor check for ircserv using Valgrind:
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --track-fds=yes ./ircserv <port> <password>
+
+
+
+
+
+//////Resources//////
+
+https://modern.ircdocs.horse/
+
+https://datatracker.ietf.org/doc/html/rfc2812
+
+https://www.csd.uoc.gr/~hy556/material/tutorials/cs556-3rd-tutorial.pdf
+
+https://www.youtube.com/watch?v=6UbKenFipjo&t=59s
+
+https://medium.com/@afatir.ahmedfatir/small-irc-server-ft-irc-42-network-7cee848de6f9
+
+
+
+
+
+
+
+
+_________________________TO TRANSLATE____________________________
+
+/////// 1. CHOIX DU CLIENT IRC /////////
+
+Client	| Type		| OS		| Pourquoi pour ft_irc ?
+-------------------------------------------------------------------------------------
+Irssi	| Terminal	| Linux/WSL	| Pour valider la conformité stricte au RFC.
+HexChat	| Graphique	| Linux/Win	| Pour tester l'expérience utilisateur et les canaux.
+----------------------------------------
+
+💡 L'outil indispensable : Netcat (nc) (man nc)
+Avant même de choisir un client, ton meilleur ami sera Netcat. En tapant nc 127.0.0.1 6667, tu peux envoyer manuellement tes commandes (ex: NICK flo) et voir exactement ce que ton serveur renvoie sans aucun filtre. C'est l'étape 0 de tout bon développeur d'IRC.
+
+Conseil : Commencer par Netcat au debut, puis passer sur Irssi pour coder les commandes de base, et termine avec HexChat pour t'assurer que le serveur est "propre" visuellement.
+
+
+SRCS: 
+
+https://modern.ircdocs.horse/#servers //TOP
+
+https://nathaan.me/projects/irc
+
+https://github.com/marineks/Ft_irc/blob/main/doc_irc/sockets_research
+
+https://medium.com/@mohamedsarda/ft-irc-channels-and-command-management-ff1ff3758a0b
+
+https://miro.com/app/board/uXjVMFuYfyA=/?share_link_id=256377652862
+
+https://www.csd.uoc.gr/~hy556/material/tutorials/cs556-3rd-tutorial.pdf
+

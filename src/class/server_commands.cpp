@@ -58,12 +58,16 @@ void Server::handleNick(int fd, std::istringstream &iss)
 	}
 
 	std::string nickname;
-	iss >> nickname;
-
-	if (nickname.empty())
+	if (!(iss >> nickname))
 	{
-		sendMessage(fd, "431 :No nickname given");
-		return;
+    	sendMessage(fd, "431 :No nickname given");
+    	return;
+	}
+
+	if (nickname.find(' ') != std::string::npos)//npos signifie introuvable
+	{
+    	sendMessage(fd, "432 " + nickname + " :Erroneous nickname");
+    	return;
 	}
 
 	if (!isValidNickname(nickname))
@@ -159,18 +163,30 @@ bool	Server::cannotJoinChannel(Channel *ch, Client *client, const std::string &k
 
 void Server::handleJoin(int fd, std::istringstream &iss)
 {
+	std::cout << "DEBUG: On arrive dans handlejoin" << std::endl; //debug efface
+	Client* client = _clients[fd];//client qui fait join
+
+	if (!client->isRegistered()|| client->getNickname().empty() || client->getUsername().empty())
+    	return;
+
 	std::string channelName;
 	std::string key;
-	iss >> channelName;  //recuperation du 1er arg après JOIN
+
+	if (!(iss >> channelName))//recuperation du 1er arg après JOIN
+	{
+    	sendMessage(fd, "461 JOIN :Not enough parameters\r\n");
+    	return;
+	}
+
 	iss >> key; // recuperation du mot de passe
 
-	std::cout << "DEBUG : channel joined name = '" + channelName + "'" << std::endl;
-	if (channelName.empty())
+	if (channelName.empty() || channelName == ":"  || channelName[0] == ':')
 	{
 		sendMessage(fd, "461 JOIN :Not enough parameters");
 		return;
 	}
-	if (channelName[0] != '#' && channelName[0] != '&')
+
+	if (channelName.size() < 2 || (channelName[0] != '#' && channelName[0] != '&'))
 	{
 		sendMessage(fd, "476 " + channelName + " :Bad channel mask");
 		return;
@@ -180,7 +196,6 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 		_channels[channelName] = new Channel(channelName);
 
 	Channel* ch = _channels[channelName]; //on recup l'obj channel
-	Client* client = _clients[fd]; //et le client qui fait JOIN
 
 	std::vector<Client*> members = ch->getMembers();
 	if (std::find(members.begin(), members.end(), client) != members.end())
@@ -194,15 +209,12 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 	ch->addMember(client);
 	ch->removeInvited(client);
 
-	members = ch->getMembers();
-	std::string join_msg = ":" + client->getNickname() + " JOIN " + channelName + "\r\n";
-	for (std::vector<Client*>::iterator it = members.begin(); it != members.end(); ++it)
-	{
-		Client* m = *it;
-		int ret = send(m->getFd(), join_msg.c_str(), join_msg.size(), 0); //broadcast le join à chaque membre du channel
-		if (ret == -1)
-			std::cerr << "ERROR failed sending JOIN to " << m->getNickname() << std::endl;
-	}
+	const std::vector<Client*>& newMembers = ch->getMembers();//// on reprend les membres APRÈS modification
+
+	std::string join_msg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " JOIN " + channelName;
+
+	for (std::vector<Client*>::const_iterator it = newMembers.begin(); it != newMembers.end(); ++it)
+		sendMessage((*it)->getFd(), join_msg);
 
 	if (!ch->getTopic().empty())
 	{
@@ -251,8 +263,11 @@ void Server::handlePrivMsg(int fd, std::istringstream &iss)
 		return;
 	}
 
-	if (message[0] == ':')
-		message.erase(0, 1);
+	if (!message.empty() && message[0] == ' ')
+    	message.erase(0, 1);
+
+	if (!message.empty() && message[0] == ':')
+    	message.erase(0, 1);
 
 	Client* sender = _clients[fd];
 
@@ -273,12 +288,12 @@ void Server::handlePrivMsg(int fd, std::istringstream &iss)
 			return;
 		}
 
-		std::string full_msg = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " PRIVMSG " + target + " :" + message + "\r\n";
+		std::string full_msg = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " PRIVMSG " + target + " :" + message;
 		for (std::vector<Client*>::const_iterator it = members.begin(); it != members.end(); ++it) // envoi à tous les membres sauf à celui qui envoie le msg
 		{
 			Client* c = *it;
 			if (c != sender)
-				send(c->getFd(), full_msg.c_str(), full_msg.size(), 0);
+				sendMessage(c->getFd(), full_msg);
 		}
 	}
 	else
@@ -299,8 +314,8 @@ void Server::handlePrivMsg(int fd, std::istringstream &iss)
 			return;
 		}
 
-		std::string full_msg = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " PRIVMSG " + target + " :" + message + "\r\n";
-		send(receiver->getFd(), full_msg.c_str(), full_msg.size(), 0);
+		std::string full_msg = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " PRIVMSG " + target + " :" + message;
+		sendMessage(receiver->getFd(), full_msg);
 	}
 }
 
@@ -355,12 +370,12 @@ void Server::handleTopic(int fd, std::istringstream &iss)
 
 	ch->setTopic(topic);
 
-	std::string msg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " TOPIC " + channelName + " :" + topic + "\r\n";;
+	std::string msg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " TOPIC " + channelName + " :" + topic;;
 
 	for (std::vector<Client*>::const_iterator it = ch->getMembers().begin(); it != ch->getMembers().end(); ++it)
 	{
 		Client* c = *it;
-		send(c->getFd(), msg.c_str(), msg.size(), 0);
+		sendMessage(c->getFd(), msg);
 	}
 }
 
@@ -400,19 +415,22 @@ void Server::handlePart(int fd, std::istringstream &iss)
 
 	// prévenir tous les membres
 	std::string notify = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " PART " + channelName;
-	if (!msg.empty()) notify += " :" + msg;
-	notify += "\r\n";
+	if (!msg.empty()) 
+		notify += " :" + msg;
 
 	for (std::vector<Client*>::const_iterator it = ch->getMembers().begin(); it != ch->getMembers().end(); ++it)
 	{
 		Client* c = *it;
-		send(c->getFd(), notify.c_str(), notify.size(), 0);
+		sendMessage(c->getFd(), notify);
 	}
 
 	ch->removeMember(client);
 
 	if (ch->getMembers().empty())
+	{
+		delete ch;
 		_channels.erase(channelName);
+	}
 }
 
 
@@ -547,7 +565,7 @@ void Server::handleMode(int fd, std::istringstream &iss)
 		{
 			ch->setInviteOnly(add);
 			modeStr += "i";
-			std::cout << "MODE +i set to " << add << std::endl; //debug
+			//std::cout << "MODE +i set to " << add << std::endl; //debug
 		}
 		else if (m == 'o') // donner/retirer droits opérateur
 		{
@@ -556,36 +574,46 @@ void Server::handleMode(int fd, std::istringstream &iss)
 				sendMessage(fd, "461 MODE :Not enough parameters");
 				continue;
 			}
-			std::string targetNick = params[paramIndex++];
 
+			std::string targetNick = params[paramIndex++];
 			Client* target = getClientByNick(targetNick);
-			if (!target || std::find(members.begin(), members.end(), target) == members.end())
+				
+			if (!target)
+			{
+				sendMessage(fd, "401 " + targetNick + " :No such nick");
+				continue;
+			}
+
+			bool found = false;
+
+			for (std::vector<Client*>::const_iterator it = members.begin();
+     			it != members.end(); ++it)
+			{
+				if (*it && (*it)->getNickname() == targetNick)
+				{
+					found = true;
+					break;
+				}
+			}
+
+			if (!found)
 			{
 				sendMessage(fd, "441 " + targetNick + " " + channelName + " :They aren't on that channel");
 				continue;
 			}
+
 			if (add)
 				ch->addAdmin(target);
 			else
 			{
-				if (ch->getMembers().size() == 1) // seul membre = seul admin
-				{
-					sendMessage(fd, ":" + _serverName + " NOTICE " + client->getNickname()
-					+ " :Cannot remove admin rights: you are the only member of " + channelName);
+				if (ch->getAdmins().size() == 1 && ch->isAdmin(target))
+      			{
+					sendMessage(fd, "482 " + channelName + " :Cannot remove last operator"); //debug
 					continue;
 				}
-				if (ch->getAdmins().size() == 1 && ch->isAdmin(target)) // droit d'admin transmit au premier membre
-				{
-					//  transfere de droits a un membre
-					ch->removeAdmin(target); // promotion automatique faite dans removeAdmin()
-					// Notifier le nouveau admin
-					Client* newAdmin = ch->getAdmins()[0];
-					sendMessage(newAdmin->getFd(), ":" + _serverName + " NOTICE " + newAdmin->getNickname()
-						+ " :You have been promoted to channel operator of " + channelName);
-				}
-				else
-					ch->removeAdmin(target);
+				ch->removeAdmin(target);
 			}
+
 			modeStr += "o";
 			paramValue.push_back(targetNick);
 		}
@@ -598,17 +626,15 @@ void Server::handleMode(int fd, std::istringstream &iss)
 				if (paramIndex >= params.size())
 				{
 					sendMessage(fd, "461 MODE :Not enough parameters");
-					continue;
+					return;
 				}
+
 				key = params[paramIndex++];
+				ch->setMode('k', key);
+				paramValue.push_back(key);
 			}
 			else
-				key = "";
-
-			ch->setMode('k', key);
-
-			if (!key.empty())
-				paramValue.push_back(key);
+				ch->setMode('k', "");
 
 			modeStr += "k";
 		}
@@ -624,6 +650,24 @@ void Server::handleMode(int fd, std::istringstream &iss)
 					continue;
 				}
 				limit = params[paramIndex++];
+				for (size_t j = 0; j < limit.size(); j++)
+				{
+    				if (!std::isdigit(static_cast<unsigned char>(limit[j])))
+   					{
+        				sendMessage(fd, "472 l :Invalid limit");
+        				limit = "";
+       	 				break;
+   					}
+				}
+
+				if (limit == "0")
+				{
+					sendMessage(fd, "472 l :Invalid limit");
+    				continue;
+				}
+
+				if (limit.empty())
+            		continue;
 			}
 			else
 				limit = "";
@@ -646,11 +690,9 @@ void Server::handleMode(int fd, std::istringstream &iss)
 					+ " " + modeStr;
 	for (size_t i = 0; i < paramValue.size(); i++)
 		msg += " " + paramValue[i];
-	msg += "\r\n";
 
-	for (std::vector<Client*>::const_iterator it = ch->getMembers().begin();
-			it != ch->getMembers().end(); ++it) //envoi à tous les membres
-		send((*it)->getFd(), msg.c_str(), msg.size(), 0);
+	for (std::vector<Client*>::const_iterator it = ch->getMembers().begin(); it != ch->getMembers().end(); ++it) //envoi à tous les membres
+		sendMessage((*it)->getFd(), msg);
 }
 
 
@@ -703,12 +745,11 @@ void Server::handleKick(int fd, std::istringstream &iss)
 						   " KICK " + channelName + " " + targetNick;
 	if (!reason.empty())
 		kick_msg += " :" + reason;
-	kick_msg += "\r\n";
-
+	
 	for (std::vector<Client*>::const_iterator it = members.begin(); it != members.end(); ++it) //info à tous les membres
 	{
 		Client* c = *it;
-		send(c->getFd(), kick_msg.c_str(), kick_msg.size(), 0);
+		sendMessage(c->getFd(), kick_msg);
 	}
 
 	ch->removeMember(target);
@@ -717,12 +758,19 @@ void Server::handleKick(int fd, std::istringstream &iss)
 		_channels.erase(channelName);
 }
 
-void Server::handlePing(int fd, std::istringstream &iss)
+void Server::handlePing(int fd, std::istringstream &iss) //sans PONG le client (nc, irssi, etc.) pense que le serveur est mort, donc important
 {
 	std::string token;
 	iss >> token;
+
+	if (token.empty())
+    {
+        sendMessage(fd, "409 :No origin specified");
+        return;
+    }
+
 	if (token[0] == ':')
 		token.erase(0, 1);
-	sendMessage(fd, ":" + _serverName + " PONG " + _serverName + " :" + token);
-	std::cout << ":" + _serverName + " PONG " + _serverName + " :" + token << std::endl;  // DEBUG
+	sendMessage(fd, "PONG " + token);
 }
+
