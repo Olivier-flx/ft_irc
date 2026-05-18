@@ -595,7 +595,7 @@ void Server::handleMode(int fd, std::istringstream &iss)
 			bool found = false;
 
 			for (std::vector<Client*>::const_iterator it = members.begin();
-     			it != members.end(); ++it)
+	 			it != members.end(); ++it)
 			{
 				if (*it && (*it)->getNickname() == targetNick)
 				{
@@ -615,7 +615,7 @@ void Server::handleMode(int fd, std::istringstream &iss)
 			else
 			{
 				if (ch->getAdmins().size() == 1 && ch->isAdmin(target))
-      			{
+	  			{
 					sendReply(fd, "482", channelName, "Cannot remove last operator"); //debug
 					continue;
 				}
@@ -660,22 +660,22 @@ void Server::handleMode(int fd, std::istringstream &iss)
 				limit = params[paramIndex++];
 				for (size_t j = 0; j < limit.size(); j++)
 				{
-    				if (!std::isdigit(static_cast<unsigned char>(limit[j])))
+					if (!std::isdigit(static_cast<unsigned char>(limit[j])))
    					{
-        				sendReply(fd, "472", "l", "Invalid limit");
-        				limit = "";
-       	 				break;
+						sendReply(fd, "472", "l", "Invalid limit");
+						limit = "";
+	   	 				break;
    					}
 				}
 
 				if (limit == "0")
 				{
 					sendReply(fd, "472", "l", "Invalid limit");
-    				continue;
+					continue;
 				}
 
 				if (limit.empty())
-            		continue;
+					continue;
 			}
 			else
 				limit = "";
@@ -772,13 +772,13 @@ void Server::handlePing(int fd, std::istringstream &iss) //sans PONG le client (
 	iss >> token;
 
 	if (token.empty())
-    {
-        sendReply(fd, "409", "", "No origin specified");
-        return;
-    }
+	{
+		sendReply(fd, "409", "", "No origin specified");
+		return;
+	}
 
 	if (token[0] == ':')
 		token.erase(0, 1);
-	sendMessage(fd, "PONG " + token);
+	sendMessage(fd, ":" + _serverName + " PONG :" + token);
 }
 
