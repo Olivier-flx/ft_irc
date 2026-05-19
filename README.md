@@ -1,7 +1,5 @@
 This project has been created as part of the 42 curriculum by ofilloux[, lylfergu[.
 
-Le projet ft_irc consiste à développer un serveur IRC en respectant le standard IRC tout en utilisant le langage C++98. Le serveur doit gérer plusieurs connexions simultanées et fonctionner en mode non bloquant pour permettre une communication fluide entre les clients.
-
 **DESCRIPTION**
 
 The ft_irc project consists of developing an IRC server while adhering to the IRC protocol and using the C++98 programming language. To enable smooth client communication, the server must manage multiple connections at once and operate in a non-blocking mode using a single poll() loop.
