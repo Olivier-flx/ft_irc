@@ -12,7 +12,6 @@ class Client
 		std::string	_ip;
 		std::string	_nickname;
 		std::string	_username;
-		std::string	_hostname;
 		std::string	_password;
 		std::string	_buffer;   // Stocke les morceaux de msg
 		std::string	_cmd;
@@ -35,6 +34,7 @@ class Client
 			const std::string	&getNickname() const;
 			const std::string	&getUsername() const;
 			const std::string	getHostname() const;
+			std::string         getPrefix() const;
 
 			// setters
 			void				setFd(int fd);

@@ -220,7 +220,7 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 
 	const std::vector<Client*>& newMembers = ch->getMembers();//// on reprend les membres APRÈS modification
 
-	std::string join_msg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " JOIN " + channelName;
+	std::string join_msg = ":" + client->getPrefix() + " JOIN " + channelName;
 
 	for (std::vector<Client*>::const_iterator it = newMembers.begin(); it != newMembers.end(); ++it)
 		sendMessage((*it)->getFd(), join_msg);
@@ -295,7 +295,7 @@ void Server::handlePrivMsg(int fd, std::istringstream &iss)
 			return;
 		}
 
-		std::string full_msg = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " PRIVMSG " + target + " :" + message;
+		std::string full_msg = ":" + sender->getPrefix() + " PRIVMSG " + target + " :" + message;
 		for (std::vector<Client*>::const_iterator it = members.begin(); it != members.end(); ++it) // envoi à tous les membres sauf à celui qui envoie le msg
 		{
 			Client* c = *it;
@@ -321,7 +321,7 @@ void Server::handlePrivMsg(int fd, std::istringstream &iss)
 			return;
 		}
 
-		std::string full_msg = ":" + sender->getNickname() + "!" + sender->getUsername() + "@" + sender->getHostname() + " PRIVMSG " + target + " :" + message;
+		std::string full_msg = ":" + sender->getPrefix()+ " PRIVMSG " + target + " :" + message;
 		sendMessage(receiver->getFd(), full_msg);
 	}
 }
@@ -380,7 +380,7 @@ void Server::handleTopic(int fd, std::istringstream &iss)
 
 	ch->setTopic(topic);
 
-	std::string msg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " TOPIC " + channelName + " :" + topic;;
+	std::string msg = ":" + client->getPrefix() + " TOPIC " + channelName + " :" + topic;;
 
 	for (std::vector<Client*>::const_iterator it = ch->getMembers().begin(); it != ch->getMembers().end(); ++it)
 	{
@@ -424,7 +424,7 @@ void Server::handlePart(int fd, std::istringstream &iss)
 		msg.erase(0, 1);
 
 	// prévenir tous les membres
-	std::string notify = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " PART " + channelName;
+	std::string notify = ":" + client->getPrefix() + " PART " + channelName;
 	if (!msg.empty())
 		notify += " :" + msg;
 
@@ -503,7 +503,7 @@ void Server::handleInvite(int fd, std::istringstream &iss)
 
 	ch->addInvited(target);
 
-	std::string prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname();
+	std::string prefix = ":" + client->getPrefix() ;
 
 	sendMessage(target->getFd(), prefix + " INVITE " + nick + " " + channelName); //envoi du msg d'invit à l'invité
 
@@ -693,11 +693,7 @@ void Server::handleMode(int fd, std::istringstream &iss)
 			sendReply(fd, "472", std::string(1, m), "Unknown mode char");
 	}
 
-	std::string msg = ":" + client->getNickname()
-					+ "!" + client->getUsername()
-					+ "@" + client->getHostname()
-					+ " MODE " + channelName
-					+ " " + modeStr;
+	std::string msg = ":" + client->getPrefix() + " MODE " + channelName + " " + modeStr;
 	for (size_t i = 0; i < paramValue.size(); i++)
 		msg += " " + paramValue[i];
 
@@ -755,8 +751,7 @@ void Server::handleKick(int fd, std::istringstream &iss)
 	if (!reason.empty() && reason[0] == ':')
 		reason.erase(0, 1);
 
-	std::string kick_msg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() +
-						   " KICK " + channelName + " " + targetNick;
+	std::string kick_msg = ":" + client->getPrefix() + " KICK " + channelName + " " + targetNick;
 	if (!reason.empty())
 		kick_msg += " :" + reason;
 

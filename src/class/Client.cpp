@@ -1,4 +1,3 @@
-
 #include "Client.hpp"
 
 //[NOT USED]
@@ -12,6 +11,7 @@ Client::Client( void )
 	this->_Authenticated = false;
 	this->_isOperator= false;
 	this->_isRegistered = false;
+	this->_cmd = "";
 }
 
 //[USED]
@@ -50,6 +50,7 @@ Client &Client::operator=(const Client &src)
 		this->_Authenticated = src._Authenticated;
 		this->_isOperator= src._isOperator;
 		this->_isRegistered = src._isRegistered;
+		this->_cmd = src._cmd;
 	}
 	return (*this);
 };
@@ -70,7 +71,8 @@ Client::~Client() {
 	const std::string	&Client::getIp() const { return (this->_ip); }
 	const std::string	&Client::getNickname() const { return (this->_nickname); }
 	const std::string	&Client::getUsername() const { return (this->_username); }
-	const std::string	Client::getHostname() const { return (_nickname + "!" + _username); }
+	const std::string	Client::getHostname() const { return (_ip); }
+		  std::string   Client::getPrefix() const { return _nickname + "!" + _username + "@" + _ip; }
 
 	// setters
 	void			Client::setFd(int fd) { _fd = fd; }

@@ -76,13 +76,20 @@ Launch irssi
 
 | Command   | Description                       | Syntax                                   |
 | --------- | --------------------------------- | ---------------------------------------- |
-| `JOIN`    | Join a channel                    | `JOIN <#channel> [<key>]`                |
-| `PART`    | Leave a channel                   | `PART <#channel>`                        |
-| `MODE`    | Modify channel modes              | `MODE <#channel> <modes> [<params>]`     |
-| `TOPIC`   | View or change the channel topic  | `TOPIC <#channel> :<topic>`              |
-| `INVITE`  | Invite a user to a channel        | `INVITE <nickname> <#channel>`           |
-| `KICK`    | Remove a user from a channel      | `KICK <#channel> <nickname>`             |
-| `PRIVMSG` | Send a private or channel message | `PRIVMSG <target> :<message>`            |
+| `JOIN`    | Join a channel                    | 
+`/join <#channel> [<key>]`                |
+| `PART`    | Leave a channel                   | 
+`/part <#channel>`                        |
+| `MODE`    | Modify channel modes              | 
+`/mode <#channel> <modes> [<params>]`     |
+| `TOPIC`   | View or change the channel topic  | 
+`/topic <#channel> :<topic>`              |
+| `INVITE`  | Invite a user to a channel        | 
+`/invite <nickname> <#channel>`           |
+| `KICK`    | Remove a user from a channel      | 
+`/kick <#channel> <nickname>`             |
+| `PRIVMSG` | Send a private or channel message | 
+`/msg <target> :<message>`            |
 
 
 //DEBUG AND DIAGNOSTIC TOOLS
