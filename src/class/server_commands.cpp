@@ -42,6 +42,33 @@ void Server::handlePass(int fd, std::istringstream &iss)
 	tryRegister(fd);
 }
 
+
+static void broadcastToCommonChannels(int fd, const std::string& msg,
+									std::map<std::string, Channel*>& channels,
+									std::map<int, Client*>& clients)
+{
+	std::vector<int> notified;
+	notified.push_back(fd);
+
+	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it)
+	{
+		const std::vector<Client*>& members = it->second->getMembers();
+		if (std::find(members.begin(), members.end(), clients[fd]) == members.end())
+			continue;
+
+		for (std::vector<Client*>::const_iterator m = members.begin(); m != members.end(); ++m)
+		{
+			int member_fd = (*m)->getFd();
+			if (std::find(notified.begin(), notified.end(), member_fd) == notified.end())
+			{
+				std::string full = msg + "\r\n";
+				send(member_fd, full.c_str(), full.size(), 0);
+				notified.push_back(member_fd);
+			}
+		}
+	}
+}
+
 /*
 Dans vrai IRC le client analyse le code numerique en
 debut de message (ex 432 : no nickename),
@@ -72,8 +99,16 @@ void Server::handleNick(int fd, std::istringstream &iss)
 		sendReply(fd, "433", nickname, "Nickname is already in use");
 		return;
 	}
+	std::string oldNick = _clients[fd]->getNickname();
 	_clients[fd]->setNickname(nickname);
-	tryRegister(fd);
+	if (_clients[fd]->isRegistered()) {
+		std::string nick_msg = ":" + oldNick + "!" + _clients[fd]->getUsername()
+							+ "@" + _clients[fd]->getHostname() + " NICK :" + nickname;
+		sendMessage(fd, nick_msg);
+		broadcastToCommonChannels(fd, nick_msg, _channels, _clients);
+	} else {
+		tryRegister(fd);
+	}
 }
 
 void Server::handleUser(int fd, std::istringstream &iss)
@@ -178,6 +213,7 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 	if (!client->isRegistered()|| client->getNickname().empty() || client->getUsername().empty())
 		return;
 
+	std::cerr <<"DEBUG - nick '" + client->getNickname() + "'\n\t is Registred '" + (client->isRegistered()? "true":"false") +"'\n\t username - '" + client->getUsername() +"'\n";
 	std::string channelName;
 	std::string key;
 
@@ -229,9 +265,6 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 	if (!ch->getTopic().empty())
 		sendReply(fd, "332", channelName, ch->getTopic());
 
-	std::cout << "DEBUG: inviteOnly=" << ch->isInviteOnly()
-			<< " invited=" << ch->isInvited(client) << std::endl;
-
 	// RPL_NAMREPLY 353 : liste des membres
 	std::string namesList = "";
 	const std::vector<Client*>& updatedMembers = ch->getMembers();
@@ -243,10 +276,10 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 		if (it + 1 != updatedMembers.end())
 			namesList += " ";
 	}
-	sendReply(fd, "353", client->getNickname() + " = " + channelName, namesList);
+	sendReply(fd, "353", "= " + channelName, namesList);
 
 	// RPL_ENDOFNAMES 366
-	sendReply(fd, "366", client->getNickname() + " " + channelName, "End of /NAMES list");
+	sendReply(fd, "366", channelName, "End of /NAMES list");
 }
 
 
@@ -750,7 +783,7 @@ void Server::handleKick(int fd, std::istringstream &iss)
 	std::getline(iss, reason);
 
 	while (!reason.empty() && reason[0] == ' ')
-    	reason.erase(0, 1);
+		reason.erase(0, 1);
 
 	if (!reason.empty() && reason[0] == ':')
 		reason.erase(0, 1);
