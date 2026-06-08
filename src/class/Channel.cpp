@@ -1,7 +1,13 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 
-Channel::Channel(std::string name): _name(name), _topic(""), _topicRestricted(false), _inviteOnly(false){}
+Channel::Channel(std::string name):
+				_name(name),
+				_topic(""),
+				_topicRestricted(false),
+				_inviteOnly(false),
+				_limit(0),
+				_key("") {}
 
 void Channel::addMember(Client* client)
 {
@@ -39,7 +45,7 @@ void Channel::removeMember(Client* client)
 		else
 			++it;
 	}
-	
+
 	if (_admins.empty() && !_members.empty())
 		_admins.push_back(_members[0]); //si plus d'admin, on donne admin au premier
 }
