@@ -669,7 +669,7 @@ void Server::handleMode(int fd, std::istringstream &iss)
 				if (paramIndex >= params.size())
 				{
 					sendReply(fd, "461", "MODE", "Not enough parameters");
-					return;
+					continue;
 				}
 
 				key = params[paramIndex++];
