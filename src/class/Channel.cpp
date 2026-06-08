@@ -32,7 +32,7 @@ void Channel::removeMember(Client* client)
 
 	for (it = _members.begin(); it != _members.end(); )
 	{
-		if (*it && (*it)->getNickname() == client->getNickname())
+		if (*it == client)
 			it = _members.erase(it);
 		else
 			++it;
@@ -40,7 +40,7 @@ void Channel::removeMember(Client* client)
 
 	for (it = _admins.begin(); it != _admins.end(); )
 	{
-		if (*it && (*it)->getNickname() == client->getNickname())
+		if (*it == client)
 			it = _admins.erase(it);
 		else
 			++it;
