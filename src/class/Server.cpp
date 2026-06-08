@@ -91,6 +91,7 @@ void Server::close_fds()
 		Client* obj = it->second;
 
 		std::cout << "Client " << fd << " (Nick: " << obj->getNickname() << ") > Disconnected" << std::endl;
+		sendMessage(it->first, "ERROR :Server shutting down"); // to avoid auto reconnections
 		close(fd);
 		delete obj; // libèration de la mémoire allouée (le Client*)
 	}
