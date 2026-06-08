@@ -415,7 +415,6 @@ void	Server::exec_cmd(int client_fd)
 
 		if (sub == "LS")
 		{
-			std::cout << "[CAP ACTION] sending LS response" << std::endl;//debug irssi
         	sendMessage(client_fd, "CAP * LS :");
 		}
 		else if (sub == "END")

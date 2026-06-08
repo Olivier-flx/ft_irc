@@ -177,7 +177,6 @@ void Channel::setTopic(const std::string &topic)
 void Channel::setInviteOnly(bool value)
 {
 	_inviteOnly = value;
-	std::cout << "SET inviteOnly = " << value << std::endl; //debug
 }
 
 void Channel::setTopicRestriction(bool value)

@@ -213,7 +213,6 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 	if (!client->isRegistered()|| client->getNickname().empty() || client->getUsername().empty())
 		return;
 
-	std::cerr <<"DEBUG - nick '" + client->getNickname() + "'\n\t is Registred '" + (client->isRegistered()? "true":"false") +"'\n\t username - '" + client->getUsername() +"'\n";
 	std::string channelName;
 	std::string key;
 
