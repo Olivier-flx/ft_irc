@@ -358,6 +358,9 @@ void Server::handleTopic(int fd, std::istringstream &iss)
 	std::string topic;
 	std::getline(iss, topic);
 
+	if (!topic.empty() && topic[0] == ' ')
+		topic.erase(0, 1);
+
 	if (!topic.empty() && topic[0] == ':')
 		topic.erase(0, 1);
 
