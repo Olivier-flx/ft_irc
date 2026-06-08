@@ -29,6 +29,9 @@
 #include <csignal>
 
 
+// taille max du buffer d'un client en attente d'un '\n' (anti-DoS)
+#define MAX_BUFFER_SIZE 524288
+
 bool	arg_ok(int ac, char **argv, int &port);
 
 #include <poll.h>

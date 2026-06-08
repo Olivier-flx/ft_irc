@@ -313,6 +313,14 @@ bool	Server::receiveData(int client_fd)
 	if (bytes_read > 0) {
 		std::string msg(buffer, bytes_read);
 		_clients[client_fd]->appendBuffer(msg);
+		// garde-fou: un client qui envoie des donnees sans jamais de '\n'
+		// ferait grossir le buffer a l'infini (DoS / epuisement memoire).
+		if (_clients[client_fd]->getBuffer().size() > MAX_BUFFER_SIZE
+			&& _clients[client_fd]->getBuffer().find('\n') == std::string::npos)
+		{
+			std::cerr << "fd " << client_fd << ": buffer trop grand sans '\\n', deconnexion" << std::endl;
+			return false;
+		}
 		return true;
 	}
 	else if (bytes_read == 0) { // client a ferme la connection
