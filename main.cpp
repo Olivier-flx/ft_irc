@@ -31,6 +31,7 @@ int	main(int ac, char **argv)
 		std::signal(SIGINT, Server::SignalHandler); //gère signal (ctrl + c)
 		std::signal(SIGQUIT, Server::SignalHandler); //-> gère signal (ctrl + \)
 		std::signal(SIGTSTP, SIG_IGN); // ignore ctrl + z (car provoque pb de reconnexion au port)
+		std::signal(SIGPIPE, SIG_IGN);// évite la mort du serveur sur send() vers socket fermée
 		serv.init();
 		serv.run();
 	}

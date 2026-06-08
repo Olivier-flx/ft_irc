@@ -13,7 +13,7 @@ class Server
 		int	_port;
 		std::string _password;				// Le mdp du serveur
 		static const std::string _serverName;
-		static bool _Signal; // for signalhandle()
+		static volatile sig_atomic_t _Signal; // for signalhandle()
 		std::vector<pollfd> _fds;			// Pour poll()
 		std::map<int, Client*> _clients;	// FD -> Pointeur vers Client
 		std::map<std::string, Channel*> _channels;	// Nom du channel -> Pointeur Channel

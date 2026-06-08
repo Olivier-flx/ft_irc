@@ -64,13 +64,12 @@ Server::~Server()
 
 const std::string& Server::getCreationTime() const { return _creationTime; }
 
-bool Server::_Signal = false; //-> initialize the static boolean
+volatile sig_atomic_t Server::_Signal = 0; //-> initialize the static boolean
 
 void Server::SignalHandler(int signum) //met variable à true en cas de reception d'un signal
 {
 	(void)signum;
-	std::cout << std::endl << "Signal Received!" << std::endl;
-	Server::_Signal = true; //l'état de la variable est la condition d'exec du serveur, si "true" le serveur cesse
+	Server::_Signal = 1;
 }
 
 void Server::_exitWithError(const std::string& msg)
@@ -234,6 +233,7 @@ void	Server::run()
 
 	}
 	this->close_fds();
+	std::cout << std::endl << "Signal received, server stopped" << std::endl;
 };
 
 void	Server::acceptClient()
