@@ -70,7 +70,7 @@ Client::~Client() {
 	const std::string	&Client::getIp() const { return (this->_ip); }
 	const std::string	&Client::getNickname() const { return (this->_nickname); }
 	const std::string	&Client::getUsername() const { return (this->_username); }
-	const std::string	Client::getHostname() const { return (_nickname + "!" + _username); }
+	const std::string	Client::getHostname() const { return (this->_ip); }
 
 	// setters
 	void			Client::setFd(int fd) { _fd = fd; }
