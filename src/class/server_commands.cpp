@@ -173,7 +173,6 @@ bool	Server::cannotJoinChannel(Channel *ch, Client *client, const std::string &k
 
 void Server::handleJoin(int fd, std::istringstream &iss)
 {
-	std::cout << "DEBUG: On arrive dans handlejoin" << std::endl; //debug efface
 	Client* client = _clients[fd];//client qui fait join
 
 	if (!client->isRegistered()|| client->getNickname().empty() || client->getUsername().empty())
@@ -244,10 +243,10 @@ void Server::handleJoin(int fd, std::istringstream &iss)
 		if (it + 1 != updatedMembers.end())
 			namesList += " ";
 	}
-	sendReply(fd, "353", "= " + channelName, namesList);
+	sendReply(fd, "353", client->getNickname() + " = " + channelName, namesList);
 
 	// RPL_ENDOFNAMES 366
-	sendReply(fd, "366", channelName, "End of /NAMES list");
+	sendReply(fd, "366", client->getNickname() + " " + channelName, "End of /NAMES list");
 }
 
 

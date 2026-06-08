@@ -319,8 +319,7 @@ bool	Server::receiveData(int client_fd)
 		return false;
 	}
 	else { // (-1) varif de si vide ou vrai erreur de recv()
-		if (errno == EAGAIN || errno == EWOULDBLOCK) //EAGAIN : "Try Again" (ressource indisponible) //EWOULDBLOCK : "Would Block"
-			return true; // OK
+		std::cerr << "recv() error on fd " << client_fd << std::endl;
 		return false; // erreur réseau
 	}
 };	// recv() -> parsing
