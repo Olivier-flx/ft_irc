@@ -749,6 +749,10 @@ void Server::handleKick(int fd, std::istringstream &iss)
 
 	std::string reason;  //pour message de kick
 	std::getline(iss, reason);
+
+	while (!reason.empty() && reason[0] == ' ')
+    	reason.erase(0, 1);
+
 	if (!reason.empty() && reason[0] == ':')
 		reason.erase(0, 1);
 
