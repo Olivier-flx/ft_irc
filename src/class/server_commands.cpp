@@ -802,7 +802,10 @@ void Server::handleKick(int fd, std::istringstream &iss)
 	ch->removeMember(target);
 
 	if (ch->getMembers().empty()) //supp du channel si vide
+	{
+		delete ch;
 		_channels.erase(channelName);
+	}
 }
 
 void Server::handlePing(int fd, std::istringstream &iss) //sans PONG le client (nc, irssi, etc.) pense que le serveur est mort, donc important
