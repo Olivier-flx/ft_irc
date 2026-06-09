@@ -43,7 +43,7 @@ Arguments:
 
 Test with netcat :
 
-nc localhost <port>
+nc -C 127.0.0.1 <port>
 PASS <password>
 USER bob
 NICK bobby
