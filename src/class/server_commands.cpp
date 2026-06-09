@@ -545,10 +545,18 @@ void Server::handleInvite(int fd, std::istringstream &iss)
 void Server::handleMode(int fd, std::istringstream &iss)
 {
 	std::string channelName;
-	iss >> channelName;
 
-	if (channelName.empty() || (channelName[0] != '#' && channelName[0] != '&'))
-		return; //mode utilisateur a la connection, donc ignore
+	if (!(iss >> channelName))
+	{
+    	sendReply(fd, "461", "MODE", "Not enough parameters");
+    	return;
+	}
+
+	if (channelName[0] != '#' && channelName[0] != '&')
+	{
+  		sendReply(fd, "461", "MODE", "Not enough parameters");
+    	return;
+	}
 
 	if (_channels.find(channelName) == _channels.end())
 	{
@@ -590,6 +598,7 @@ void Server::handleMode(int fd, std::istringstream &iss)
 	}
 
 	bool add = true;
+	bool hasValidMode = false;
 	std::string modeStr; // pour recuperer les lettres et les signes + ou -
 	std::vector<std::string> paramValue; // pour recuperer les parametres de K, o, ou l
 
@@ -602,11 +611,12 @@ void Server::handleMode(int fd, std::istringstream &iss)
 		else if (m == '-')
 			add = false, modeStr += "-";
 		else if (m == 't')
-			ch->setTopicRestriction(add), modeStr += "t";
+			ch->setTopicRestriction(add), modeStr += "t", hasValidMode = true;
 		else if (m == 'i')
 		{
 			ch->setInviteOnly(add);
 			modeStr += "i";
+			hasValidMode = true;
 			//std::cout << "MODE +i set to " << add << std::endl; //debug
 		}
 		else if (m == 'o') // donner/retirer droits opérateur
@@ -657,6 +667,7 @@ void Server::handleMode(int fd, std::istringstream &iss)
 			}
 
 			modeStr += "o";
+			hasValidMode = true;
 			paramValue.push_back(targetNick);
 		}
 		else if (m == 'k') // mot de passe channel
@@ -679,6 +690,7 @@ void Server::handleMode(int fd, std::istringstream &iss)
 				ch->setMode('k', "");
 
 			modeStr += "k";
+			hasValidMode = true;
 		}
 		else if (m == 'l') // limite de clients
 		{
@@ -720,11 +732,14 @@ void Server::handleMode(int fd, std::istringstream &iss)
 				paramValue.push_back(limit);
 
 			modeStr += "l";
+			hasValidMode = true;
 		}
 		else
 			sendReply(fd, "472", std::string(1, m), "Unknown mode char");
 	}
 
+	if (!hasValidMode)
+    	return;
 	std::string msg = ":" + client->getNickname()
 					+ "!" + client->getUsername()
 					+ "@" + client->getHostname()
