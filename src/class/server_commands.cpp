@@ -546,6 +546,9 @@ void Server::handleMode(int fd, std::istringstream &iss)
 {
 	std::string channelName;
 
+	if (!_clients[fd]->isRegistered())
+    	return;
+
 	if (!(iss >> channelName))
 	{
     	sendReply(fd, "461", "MODE", "Not enough parameters");
@@ -593,7 +596,8 @@ void Server::handleMode(int fd, std::istringstream &iss)
 
 	if (mode.empty())
 	{
-		sendReply(fd, "324", channelName, ch->getModes());
+		std::string full_msg = ":" + _serverName + " 324 " + client->getNickname() + " " + channelName + " " + ch->getModes();
+		sendMessage(fd, full_msg);
 		return;
 	}
 
